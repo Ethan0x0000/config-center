@@ -1,5 +1,5 @@
 # config-center
-This is a WebUI for generating configuration files for the sing-box kernel
+This is a WebUI for generating configuration files for the sing-box kernel.
 To use the built-in API, please write your own service program:
 `http://your-server-ip/update-config `
 `http://your-server-ip/get-kernel-status`
