@@ -81,7 +81,7 @@ async function generateOutbounds(nodeList, subs, nodeIDs) {
     }
   }
   return nodes.map(node => {
-    let outbound = node.content;
+    let outbound = deepCopy(node.content);
     outbound.tag = node.name;
     return outbound;
   });
