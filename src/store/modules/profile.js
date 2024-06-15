@@ -149,7 +149,7 @@ function generateOutboundGroups(outbounds, subs, rules, udRules, isTogShut) {
   }).map(rule => {
     return {
       tag: rule.name,
-      outbounds: ['Proxy'].concat(outboundNames, ['🇨🇳 Direct']),
+      outbounds: ['Proxy'].concat(outboundNames, ['🇨🇳 Direct', 'block']),
       interrupt_exist_connections: isTogShut,
       type: 'selector'
     }
@@ -159,7 +159,7 @@ function generateOutboundGroups(outbounds, subs, rules, udRules, isTogShut) {
   }).map(rule => {
     return {
       tag: rule.name,
-      outbounds: ['Proxy'].concat(outboundNames, ['🇨🇳 Direct']),
+      outbounds: ['Proxy'].concat(outboundNames, ['🇨🇳 Direct', 'block']),
       interrupt_exist_connections: isTogShut,
       type: 'selector'
     }
