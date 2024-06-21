@@ -191,6 +191,7 @@ export const inbounds = {
     },
     {
       type: 'tun',
+      interface_name: 'sb-tun',
       inet4_address: '172.19.0.1/30',
       stack: 'system',
       sniff: true,
@@ -216,6 +217,7 @@ export const inbounds = {
     },
     {
       type: 'tun',
+      interface_name: 'sb-tun',
       inet4_address: '172.19.0.1/30',
       stack: 'system',
       sniff: true,
@@ -249,6 +251,7 @@ export const inbounds = {
     },
     {
       type: 'tun',
+      interface_name: 'sb-tun',
       inet4_address: '172.19.0.1/30',
       stack: 'system',
       sniff: true,
