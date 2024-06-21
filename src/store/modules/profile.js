@@ -247,7 +247,6 @@ function modifyDNS(config, profile, isFakeIP) {
     'inbound',
     'ip_version',
     'query_type',
-    'network',
     'auth_user',
     'protocol',
     'domain',
@@ -255,13 +254,6 @@ function modifyDNS(config, profile, isFakeIP) {
     'domain_keyword',
     'domain_regex',
     'geosite',
-    'source_geoip',
-    'source_ip_cidr',
-    'source_ip_is_private',
-    'source_port',
-    'source_port_range',
-    'port',
-    'port_range',
     'process_name',
     'process_path',
     'package_name',
@@ -271,14 +263,10 @@ function modifyDNS(config, profile, isFakeIP) {
     'wifi_ssid',
     'wifi_bssid',
     'rule_set',
-    'rule_set_ipcidr_match_source',
     'invert',
     'outbound',
     'rewrite_ttl',
     'client_subnet',
-    'geoip',
-    'ip_cidr',
-    'ip_is_private'
   ];
 
   if (Array.isArray(profile.udRules) && profile.udRules.length > 0) {
