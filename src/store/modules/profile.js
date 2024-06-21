@@ -304,7 +304,7 @@ function modifyDNS(config, profile, isFakeIP) {
           filteredObject.server = 'block-dns';
           break;
         case 'proxy':
-          filteredObject.server = 'remote-dns';
+          filteredObject.server = isFakeIP ? 'fakeip-dns' : 'remote-dns';
           break;
         default:
           break;
@@ -334,7 +334,7 @@ function modifyDNS(config, profile, isFakeIP) {
           filteredObject.server = 'block-dns';
           break;
         case 'proxy':
-          filteredObject.server = 'remote-dns';
+          filteredObject.server = isFakeIP ? 'fakeip-dns' : 'remote-dns';
           break;
         default:
           break;
