@@ -196,6 +196,7 @@ export const inbounds = {
       stack: 'system',
       sniff: true,
       auto_route: true,
+      strict_route: true,
       sniff_override_destination: true,
       gso: false
     },
