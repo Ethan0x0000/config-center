@@ -252,7 +252,7 @@ export const inbounds = {
     },
     {
       type: 'tun',
-      interface_name: 'sb-tun',
+      interface_name: 'tun-in',
       inet4_address: '172.19.0.1/30',
       stack: 'system',
       sniff: true,
@@ -270,10 +270,10 @@ export const inbounds = {
     },
     {
       type: 'direct',
+      tag: 'direct-in',
       listen: '::',
-      listen_port: 53,
-      sniff: true,
-      tag: 'dns-in'
+      listen_port: 5353,
+      sniff: true
     }
   ]
 }
