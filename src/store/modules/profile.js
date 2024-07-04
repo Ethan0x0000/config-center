@@ -336,6 +336,38 @@ function modifyDNS(config, profile, isFakeIP) {
   if (nonPriorityRules.length > 0) {
     config.dns.rules.splice(config.dns.rules.length - 2, 0, ...nonPriorityRules);
   }
+
+  // 过滤元素
+  config.dns.rules = config.dns.rules.filter(rule => {
+    // 获取所有的键，排除 'server'
+    const keys = Object.keys(rule).filter(key => key !== 'server');
+
+    // 检查非 'server' 属性是否全部为空
+    const isEmpty = keys.every(key => {
+      const value = rule[key];
+      if (Array.isArray(value)) {
+        return value.length === 0;
+      }
+      return !value;
+    });
+
+    // 如果非 'server' 属性全部为空，返回 false (过滤掉)
+    if (isEmpty) {
+      return false;
+    }
+
+    // 否则，删除空属性或空数组
+    keys.forEach(key => {
+      const value = rule[key];
+      if (Array.isArray(value) && value.length === 0) {
+        delete rule[key];
+      } else if (!value) {
+        delete rule[key];
+      }
+    });
+
+    return true;
+  });
 }
 
 // 入站配置
