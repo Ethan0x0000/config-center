@@ -433,23 +433,24 @@ const updateState = reactive({});
 const handleUpdate = async (item) => {
   updateState[item.id] = true;
   try {
-    const res = await axios.post(`http://${backendUrl.value}/update-config`, null, {
-      params: {
-        config: item.value
+    const res = await axios.post(`http://${backendUrl.value}/update-config`, { config: item.value }, {
+      headers: {
+        'Content-Type': 'application/json'
       }
-    })
+    });
     if (res.status === 200) {
       ElMessage.success('更新配置成功');
-      console.log(res.data)
+      console.log(res.data);
     } else {
       ElMessage.error('更新配置失败');
     }
   } catch (err) {
-    console.error(err)
-    ElMessage.error('更新配置失败')
+    console.error(err);
+    ElMessage.error('更新配置失败');
   }
   updateState[item.id] = false;
 };
+
 
 const copyToClipboard = (text) => {
   const textarea = document.createElement('textarea')
