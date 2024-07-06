@@ -83,6 +83,10 @@ const restartKernel = async () => {
 
 const upgradeState = ref(false);
 const upgradeKernel = async () => {
+  if (kernelVersionInfo.value.current === kernelVersionInfo.value.latest) {
+    ElMessage.warning('当前内核版本已是最新版本');
+    return;
+  }
   upgradeState.value = true;
   try {
     const res = await axios.post(`http://${backendUrl.value}/upgrade-kernel`);

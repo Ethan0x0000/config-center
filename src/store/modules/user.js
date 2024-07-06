@@ -67,6 +67,7 @@ const user = {
         const res = await axios.post(`http://${state.backendUrl}/get-kernel-status`);
         if (res.status === 200) {
           commit('setKernelStatus', res.data);
+          console.log('Kernel Status:', res.data);
         } else {
           console.error(`获取内核状态失败: ${res.data}`);
           commit('setKernelStatus', 'failed');
@@ -81,8 +82,8 @@ const user = {
         if (res.status === 200) {
           commit('setKernelVersionInfo', res.data);
           // console.log(`获取内核版本信息成功:`, res.data);
-          console.log('Response Headers:', res.headers);
-          console.log('Response Data:', res.data);
+          // console.log('Response Headers:', res.headers);
+          console.log('Version Info:', res.data);
         } else {
           throw new Error(`获取内核版本信息失败: ${res.status} ${res.statusText}`);
         }
