@@ -403,7 +403,7 @@ const handleUpload = async (item) => {
       const updatedGistUrl = updateResponse.data.html_url;
       const fileUrl = `${updatedGistUrl}/raw/${name}`;
       ElMessage.success('配置更新成功');
-      copyToClipboard('https://mirror.ghproxy.com/' + fileUrl);
+      copyToClipboard(fileUrl);
       ElMessage('配置链接已复制到剪贴板');
     } else {
       // 如果不存在对应的 Gist,则创建新的
@@ -419,7 +419,7 @@ const handleUpload = async (item) => {
       const gistUrl = createResponse.data.html_url;
       const fileUrl = `${gistUrl}/raw/${name}`;
       ElMessage.success('配置创建成功');
-      copyToClipboard('https://mirror.ghproxy.com/' + fileUrl);
+      copyToClipboard(fileUrl);
       ElMessage('配置链接已复制到剪贴板');
     }
   } catch (error) {

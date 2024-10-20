@@ -371,7 +371,7 @@ function modifyDNS(config, profile, isFakeIP) {
 }
 
 // 入站配置
-function modifyInbounds(config, profile) {
+function modifyInbounds(config, profile, global) {
   switch (profile.target) {
     case 'pc':
       config.inbounds = [...inbounds.pc];
@@ -384,6 +384,11 @@ function modifyInbounds(config, profile) {
       break;
     default:
       break;
+  }
+  for (let i = 0; i < config.inbounds.length; i++) {
+    if (Object.prototype.hasOwnProperty.call(config.inbounds[i], 'sniff_override_destination')) {
+      config.inbounds[i].sniff_override_destination = profile.isUseGlobal ? global.isOverDst : profile.isOverDst;
+    }
   }
 }
 
@@ -496,7 +501,7 @@ async function modifyConfig(config, subs, nodeList, profile, global) {
     modifyDNS(config, profile, profile.isUseGlobal ? global.isFakeIP : profile.isFakeIP);
 
     // 入站配置
-    modifyInbounds(config, profile);
+    modifyInbounds(config, profile, global);
 
     // 出站配置
     let outbounds = await generateOutbounds(nodeList, subs, profile.nodeIDs);
@@ -548,21 +553,6 @@ const profile = {
           },
           {
             id: uuidV4(),
-            name: 'geosite-openai',
-            url: 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/openai.srs'
-          },
-          {
-            id: uuidV4(),
-            name: 'geosite-claude',
-            url: 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/Ethan0x0000/rule-set/main/singbox/geosite/claude.srs'
-          },
-          {
-            id: uuidV4(),
-            name: 'geosite-gemini',
-            url: 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/Ethan0x0000/rule-set/main/singbox/geosite/gemini.srs'
-          },
-          {
-            id: uuidV4(),
             name: 'geoip-telegram',
             url: 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geoip/telegram.srs'
           },
@@ -573,43 +563,13 @@ const profile = {
           },
           {
             id: uuidV4(),
-            name: 'geosite-tiktok',
-            url: 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/tiktok.srs'
-          },
-          {
-            id: uuidV4(),
             name: 'geosite-youtube',
             url: 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/youtube.srs'
           },
           {
             id: uuidV4(),
-            name: 'geoip-netflix',
-            url: 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geoip/netflix.srs'
-          },
-          {
-            id: uuidV4(),
-            name: 'geosite-netflix',
-            url: 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/netflix.srs'
-          },
-          {
-            id: uuidV4(),
-            name: 'geosite-pikpak',
-            url: 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/pikpak.srs'
-          },
-          {
-            id: uuidV4(),
             name: 'geosite-google',
             url: 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/google.srs'
-          },
-          {
-            id: uuidV4(),
-            name: 'geosite-supercell',
-            url: 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/Ethan0x0000/rule-set/main/singbox/geosite/supercell.srs'
-          },
-          {
-            id: uuidV4(),
-            name: 'geosite-speedtest',
-            url: 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/speedtest.srs'
           }
         ],
         directRules: [
@@ -622,21 +582,6 @@ const profile = {
             id: uuidV4(),
             name: 'geosite-cn',
             url: 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/cn.srs'
-          },
-          {
-            id: uuidV4(),
-            name: 'geosite-apple@cn',
-            url: 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/apple@cn.srs'
-          },
-          {
-            id: uuidV4(),
-            name: 'geosite-steam@cn',
-            url: 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/steam@cn.srs'
-          },
-          {
-            id: uuidV4(),
-            name: 'geosite-microsoft@cn',
-            url: 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/microsoft@cn.srs'
           }
         ],
         blockRules: [
@@ -644,11 +589,6 @@ const profile = {
             id: uuidV4(),
             name: 'geosite-category-ads-all',
             url: 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/category-ads-all.srs'
-          },
-          {
-            id: uuidV4(),
-            name: 'geosite-category-porn@ads',
-            url: 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/category-porn@ads.srs'
           }
         ],
         udRules: [
@@ -752,21 +692,6 @@ const profile = {
           },
           {
             id: uuidV4(),
-            name: 'geosite-openai',
-            url: 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/openai.srs'
-          },
-          {
-            id: uuidV4(),
-            name: 'geosite-claude',
-            url: 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/Ethan0x0000/rule-set/main/singbox/geosite/claude.srs'
-          },
-          {
-            id: uuidV4(),
-            name: 'geosite-gemini',
-            url: 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/Ethan0x0000/rule-set/main/singbox/geosite/gemini.srs'
-          },
-          {
-            id: uuidV4(),
             name: 'geoip-telegram',
             url: 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geoip/telegram.srs'
           },
@@ -777,43 +702,13 @@ const profile = {
           },
           {
             id: uuidV4(),
-            name: 'geosite-tiktok',
-            url: 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/tiktok.srs'
-          },
-          {
-            id: uuidV4(),
             name: 'geosite-youtube',
             url: 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/youtube.srs'
           },
           {
             id: uuidV4(),
-            name: 'geoip-netflix',
-            url: 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geoip/netflix.srs'
-          },
-          {
-            id: uuidV4(),
-            name: 'geosite-netflix',
-            url: 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/netflix.srs'
-          },
-          {
-            id: uuidV4(),
-            name: 'geosite-pikpak',
-            url: 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/pikpak.srs'
-          },
-          {
-            id: uuidV4(),
             name: 'geosite-google',
             url: 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/google.srs'
-          },
-          {
-            id: uuidV4(),
-            name: 'geosite-supercell',
-            url: 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/Ethan0x0000/rule-set/main/singbox/geosite/supercell.srs'
-          },
-          {
-            id: uuidV4(),
-            name: 'geosite-speedtest',
-            url: 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/speedtest.srs'
           }
         ],
         directRules: [
@@ -826,21 +721,6 @@ const profile = {
             id: uuidV4(),
             name: 'geosite-cn',
             url: 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/cn.srs'
-          },
-          {
-            id: uuidV4(),
-            name: 'geosite-apple@cn',
-            url: 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/apple@cn.srs'
-          },
-          {
-            id: uuidV4(),
-            name: 'geosite-steam@cn',
-            url: 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/steam@cn.srs'
-          },
-          {
-            id: uuidV4(),
-            name: 'geosite-microsoft@cn',
-            url: 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/microsoft@cn.srs'
           }
         ],
         blockRules: [
@@ -848,11 +728,6 @@ const profile = {
             id: uuidV4(),
             name: 'geosite-category-ads-all',
             url: 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/category-ads-all.srs'
-          },
-          {
-            id: uuidV4(),
-            name: 'geosite-category-porn@ads',
-            url: 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/category-porn@ads.srs'
           }
         ],
         udRules: [
