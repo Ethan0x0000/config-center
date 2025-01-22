@@ -3,6 +3,7 @@ const user = {
   namespaced: true,
   state: {
     asideOpen: false,
+    asideWidth: 240,
     backendUrl: '',
     gitToken: '',
     kernelStatus: {
@@ -18,6 +19,9 @@ const user = {
   mutations: {
     setAsideOpen(state, value) {
       state.asideOpen = value
+    },
+    setAsideWidth(state, value) {
+      state.asideWidth = Math.max(150, Math.min(400, value))
     },
     setBackendUrl(state, value) {
       state.backendUrl = value;
@@ -64,7 +68,7 @@ const user = {
   actions: {
     async getKernelStatus({ state, commit }) {
       try {
-        const res = await axios.post(`http://${state.backendUrl}/get-kernel-status`);
+        const res = await axios.get(`http://${state.backendUrl}/get-kernel-status`);
         if (res.status === 200) {
           commit('setKernelStatus', res.data);
           console.log('Kernel Status:', res.data);
@@ -81,8 +85,6 @@ const user = {
         const res = await axios.get(`http://${state.backendUrl}/get-version-info`);
         if (res.status === 200) {
           commit('setKernelVersionInfo', res.data);
-          // console.log(`获取内核版本信息成功:`, res.data);
-          // console.log('Response Headers:', res.headers);
           console.log('Version Info:', res.data);
         } else {
           throw new Error(`获取内核版本信息失败: ${res.status} ${res.statusText}`);
@@ -95,4 +97,3 @@ const user = {
 }
 
 export default user
-

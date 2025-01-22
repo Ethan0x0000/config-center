@@ -64,6 +64,11 @@ function modifyGlobal(config, profile, global) {
       }
     }
   }
+
+  // 修改 clash-api 地址
+  if (profile.target == 'linux') {
+    config.experimental.clash_api.external_controller = '0.0.0.0:9090';
+  }
 }
 
 // 出站配置
@@ -95,14 +100,18 @@ function processString(str) {
   result = result.charAt(0).toUpperCase() + result.slice(1);
   return result.replace('ai', 'AI');
 }
-function generateOutboundGroups(outbounds, subs, rules, udRules, isTogShut) {
+function generateOutboundGroups(outbounds, subs, rules, blocks, udRules, isTogShut) {
   let subGroupNames = subs.filter(sub => sub.isGroup && sub.usedNodes.length > 0).map(item => item.name);
   let subGroups = subs.filter(sub => sub.isGroup && sub.usedNodes.length > 0).map(sub => {
     return {
       tag: sub.name,
       outbounds: sub.usedNodes.map(index => sub.subNodes[index].name),
-      interrupt_exist_connections: isTogShut,
-      type: 'selector'
+      type: 'urltest',
+      url: 'https://www.gstatic.com/generate_204',
+      interval: '5m',
+      tolerance: 50,
+      idle_timeout: '30m',
+      interrupt_exist_connections: false
     }
   });
   let outboundNames = outbounds.map(item => item.tag).concat(subGroupNames);
@@ -144,6 +153,16 @@ function generateOutboundGroups(outbounds, subs, rules, udRules, isTogShut) {
   }).filter((item, index, self) =>
     index === self.findIndex(obj => obj.tag === item.tag)
   );
+  let blockGroups = blocks.map(rule => {
+    return {
+      tag: processString(rule.name),
+      outbounds: ['block', '🇨🇳 Direct'],
+      interrupt_exist_connections: isTogShut,
+      type: 'selector'
+    }
+  }).filter((item, index, self) =>
+    index === self.findIndex(obj => obj.tag === item.tag)
+  );
   let priorityUdRuleGroups = udRules.filter(rule => {
     return rule.isGroup && rule.isPriority && rule.type === 'proxy';
   }).map(rule => {
@@ -168,9 +187,9 @@ function generateOutboundGroups(outbounds, subs, rules, udRules, isTogShut) {
   let groups = [];
 
   if (priorityUdRuleGroups !== null) {
-    groups = groups.concat(proxyGroup, autoGroup, priorityUdRuleGroups, ruleGroups);
+    groups = groups.concat(proxyGroup, autoGroup, priorityUdRuleGroups, ruleGroups, blockGroups);
   } else {
-    groups = groups.concat(proxyGroup, autoGroup, ruleGroups);
+    groups = groups.concat(proxyGroup, autoGroup, ruleGroups, blockGroups);
   }
   if (nonPriorityUdRuleGroups !== null) {
     groups = groups.concat(nonPriorityUdRuleGroups);
@@ -202,15 +221,6 @@ function modifyDNS(config, profile, isFakeIP) {
     resolverDNS.address = profile.dns.resolver;
   }
 
-  // 处理 block-dns
-  const blockRule = config.dns.rules.find(rule => rule.server === 'block-dns');
-  if (blockRule) {
-    blockRule.rule_set = profile.blockRules.filter(item => {
-      const regex = /geoip-/;
-      return !regex.test(item.name);
-    }).map(item => item.name);
-  }
-
   // 处理 local-dns
   const localRules = config.dns.rules.filter(rule => rule.server === 'local-dns');
   if (localRules.length > 0) {
@@ -218,7 +228,10 @@ function modifyDNS(config, profile, isFakeIP) {
     lastLocalRule.rule_set = profile.directRules.filter(item => {
       const regex = /geoip-/;
       return !regex.test(item.name);
-    }).map(item => item.name);
+    }).map(item => item.name).concat(profile.blockRules.filter(item => {
+      const regex = /geoip-/;
+      return !regex.test(item.name);
+    }).map(item => item.name));
   }
 
   // 处理 remote-dns
@@ -398,7 +411,7 @@ function modifyRoutes(config, profile) {
     return {
       type: 'remote',
       format: 'binary',
-      download_detour: 'direct',
+      download_detour: 'Proxy',
       tag: item.name,
       url: item.url,
     }
@@ -407,7 +420,7 @@ function modifyRoutes(config, profile) {
     return {
       type: 'remote',
       format: 'binary',
-      download_detour: 'direct',
+      download_detour: 'Proxy',
       tag: item.name,
       url: item.url,
     }
@@ -416,7 +429,7 @@ function modifyRoutes(config, profile) {
     return {
       type: 'remote',
       format: 'binary',
-      download_detour: 'direct',
+      download_detour: 'Proxy',
       tag: item.name,
       url: item.url,
     }
@@ -428,6 +441,9 @@ function modifyRoutes(config, profile) {
   });
   let directRules = profile.directRules.map(item => {
     return { rule_set: item.name, outbound: 'direct' }
+  });
+  let blockRules = profile.blockRules.map(item => {
+    return { rule_set: item.name, outbound: processString(item.name) }
   });
 
   let priorityUdRules = [];
@@ -462,7 +478,7 @@ function modifyRoutes(config, profile) {
     }).filter(ruleObj => ruleObj !== null);
 
     nonPriorityUdRules = profile.udRules.filter(item => {
-      return !item.isPriority && item.type !== 'block' && item.content;
+      return !item.isPriority && item.content;
     }).map(item => {
       let ruleObj;
       try {
@@ -474,6 +490,9 @@ function modifyRoutes(config, profile) {
       switch (item.type) {
         case 'direct':
           ruleObj.outbound = 'direct';
+          break;
+        case 'block':
+          ruleObj.outbound = 'block';
           break;
         case 'proxy':
           if (item.isGroup) {
@@ -489,7 +508,7 @@ function modifyRoutes(config, profile) {
     }).filter(ruleObj => ruleObj !== null);
   }
 
-  config.route.rules = config.route.rules.concat(priorityUdRules, proxyRules, directRules, nonPriorityUdRules);
+  config.route.rules = config.route.rules.concat(blockRules, priorityUdRules, proxyRules, directRules, nonPriorityUdRules);
 }
 
 async function modifyConfig(config, subs, nodeList, profile, global) {
@@ -505,7 +524,7 @@ async function modifyConfig(config, subs, nodeList, profile, global) {
 
     // 出站配置
     let outbounds = await generateOutbounds(nodeList, subs, profile.nodeIDs);
-    let outboundGroups = generateOutboundGroups(outbounds, subs, profile.proxyRules, profile.udRules, profile.isUseGlobal ? global.isTogShut : profile.isTogShut);
+    let outboundGroups = generateOutboundGroups(outbounds, subs, profile.proxyRules, profile.blockRules, profile.udRules, profile.isUseGlobal ? global.isTogShut : profile.isTogShut);
     config.outbounds = config.outbounds.concat(outbounds, outboundGroups);
 
     // 路由配置
@@ -549,46 +568,46 @@ const profile = {
           {
             id: uuidV4(),
             name: 'geosite-bing',
-            url: 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/bing.srs'
+            url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/bing.srs'
           },
           {
             id: uuidV4(),
             name: 'geoip-telegram',
-            url: 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geoip/telegram.srs'
+            url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geoip/telegram.srs'
           },
           {
             id: uuidV4(),
             name: 'geosite-telegram',
-            url: 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/telegram.srs'
+            url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/telegram.srs'
           },
           {
             id: uuidV4(),
             name: 'geosite-youtube',
-            url: 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/youtube.srs'
+            url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/youtube.srs'
           },
           {
             id: uuidV4(),
             name: 'geosite-google',
-            url: 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/google.srs'
+            url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/google.srs'
           }
         ],
         directRules: [
           {
             id: uuidV4(),
             name: 'geoip-cn',
-            url: 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geoip/cn.srs'
+            url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geoip/cn.srs'
           },
           {
             id: uuidV4(),
             name: 'geosite-cn',
-            url: 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/cn.srs'
+            url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/cn.srs'
           }
         ],
         blockRules: [
           {
             id: uuidV4(),
             name: 'geosite-category-ads-all',
-            url: 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/category-ads-all.srs'
+            url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/category-ads-all.srs'
           }
         ],
         udRules: [
@@ -688,58 +707,44 @@ const profile = {
           {
             id: uuidV4(),
             name: 'geosite-bing',
-            url: 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/bing.srs'
+            url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/bing.srs'
           },
           {
             id: uuidV4(),
             name: 'geoip-telegram',
-            url: 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geoip/telegram.srs'
+            url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geoip/telegram.srs'
           },
           {
             id: uuidV4(),
             name: 'geosite-telegram',
-            url: 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/telegram.srs'
+            url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/telegram.srs'
           },
           {
             id: uuidV4(),
             name: 'geosite-youtube',
-            url: 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/youtube.srs'
+            url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/youtube.srs'
           },
           {
             id: uuidV4(),
             name: 'geosite-google',
-            url: 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/google.srs'
+            url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/google.srs'
           }
         ],
         directRules: [
           {
             id: uuidV4(),
             name: 'geoip-cn',
-            url: 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geoip/cn.srs'
+            url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geoip/cn.srs'
           },
           {
             id: uuidV4(),
             name: 'geosite-cn',
-            url: 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/cn.srs'
+            url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/cn.srs'
           }
         ],
         blockRules: [
-          {
-            id: uuidV4(),
-            name: 'geosite-category-ads-all',
-            url: 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/category-ads-all.srs'
-          }
         ],
         udRules: [
-          {
-            id: uuidV4(),
-            name: '云手机',
-            type: 'direct',
-            isGroup: false,
-            isUse: true,
-            isPriority: true,
-            content: '{\n  "domain_suffix": [\n    ".mogume.com",\n    ".dutils.com"\n  ]\n}\n'
-          }
         ],
         value: '',
       };
@@ -893,6 +898,7 @@ const profile = {
         outbounds: deepCopy(outbounds),
         route: deepCopy(route)
       };
+
 
       try {
         config = await modifyConfig(config, state.subs, state.nodeList, profile, state.global);

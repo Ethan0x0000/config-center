@@ -27,13 +27,15 @@
         style="display: flex;justify-content: center;align-items: center;width: 49%;height: 40px; margin:0px 0px 5px 0px;">升级内核</el-button>
       <el-button type="primary" @click="reloadRuleSets" :loading="reloadState"
         style="display: flex;justify-content: center;align-items: center;width: 49%;height: 40px; margin:0px 0px 5px 0px;">重载规则集列表</el-button>
+      <el-button type="primary" @click="refreshStatus" :loading="refreshState"
+        style="display: flex;justify-content: center;align-items: center;width: 49%;height: 40px; margin:0px 0px 5px 0px;">刷新状态</el-button>
     </div>
   </el-card>
 </template>
 
 <script setup>
 import { ElMessage } from 'element-plus';
-import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useStore } from 'vuex';
 import axios from 'axios';
 
@@ -47,20 +49,8 @@ const backendUrl = computed({
 const kernelStatus = computed(() => store.state.user.kernelStatus);
 const kernelVersionInfo = computed(() => store.state.user.kernelVersionInfo);
 
-let intervalId = null;
-
 onMounted(() => {
   store.dispatch('profile/initProfile');
-
-
-  intervalId = setInterval(() => {
-    store.dispatch('user/getKernelStatus');
-  }, 3000);
-  store.dispatch('user/getKernelVersionInfo');
-});
-
-onUnmounted(() => {
-  clearInterval(intervalId);
 });
 
 
@@ -103,6 +93,20 @@ const upgradeKernel = async () => {
 };
 
 const reloadState = ref(false);
+const refreshState = ref(false);
+
+const refreshStatus = async () => {
+  refreshState.value = true;
+  try {
+    await store.dispatch('user/getKernelStatus');
+    await store.dispatch('user/getKernelVersionInfo');
+    ElMessage.success('状态已刷新');
+  } catch (error) {
+    console.error(error);
+    ElMessage.error('状态刷新失败');
+  }
+  refreshState.value = false;
+};
 const reloadRuleSets = async () => {
   reloadState.value = true;
   try {

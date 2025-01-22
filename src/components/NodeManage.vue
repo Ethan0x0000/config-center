@@ -27,7 +27,8 @@
       </el-card>
     </VueDraggable>
   </el-card>
-  <el-dialog title="编辑节点" v-model="dialogVisible" width="30%" align-center>
+  <el-dialog :title="dialogState === DialogState.ADD ? '添加节点' : '编辑节点'" v-model="dialogVisible" width="30%" align-center
+    :before-close="handleDialogClose">
     <div style="display: flex; flex-direction: row;align-content: center;">
       <el-text style="width:50px">名称：</el-text>
       <el-input class="node-name" v-model="editItem.name"></el-input>
@@ -38,6 +39,7 @@
       <el-input class="node-link" v-model="editItem.link"></el-input>
     </div>
     <template #footer>
+      <el-button @click="handleDialogClose">取消</el-button>
       <el-button type="primary" @click="handleSave" :loading="isLoading">保存</el-button>
     </template>
   </el-dialog>
@@ -53,7 +55,15 @@ import { ElMessage } from 'element-plus';
 
 const store = useStore();
 const currentProfileID = computed(() => store.state.profile.currentProfileID);
-const dialogVisible = ref(false);
+
+const DialogState = {
+  CLOSED: 0,
+  ADD: 1,
+  EDIT: 2
+};
+
+const dialogState = ref(DialogState.CLOSED);
+const dialogVisible = computed(() => dialogState.value !== DialogState.CLOSED);
 
 const nodes = computed({
   get: () => store.state.profile.nodeList,
@@ -61,15 +71,28 @@ const nodes = computed({
 });
 
 const editItem = ref({});
+
 const handleAddNode = () => {
-  dialogVisible.value = true;
+  dialogState.value = DialogState.ADD;
   store.commit('profile/addNodeList');
-  store.commit('profile/addNodeID', { profileID: currentProfileID.value, nodeID: store.state.profile.nodeList[store.state.profile.nodeList.length - 1].id })
-  editItem.value = store.state.profile.nodeList[store.state.profile.nodeList.length - 1];
-}
+  store.commit('profile/addNodeID', {
+    profileID: currentProfileID.value,
+    nodeID: store.state.profile.nodeList[store.state.profile.nodeList.length - 1].id
+  });
+  editItem.value = { ...store.state.profile.nodeList[store.state.profile.nodeList.length - 1] };
+};
+
 const handleEditNode = (item) => {
-  dialogVisible.value = true;
-  editItem.value = item;
+  dialogState.value = DialogState.EDIT;
+  editItem.value = { ...item };
+};
+
+const handleDialogClose = () => {
+  if (dialogState.value === DialogState.ADD) {
+    store.commit('profile/deleteNodeList', editItem.value.id);
+  }
+  dialogState.value = DialogState.CLOSED;
+  editItem.value = {};
 };
 
 const isNodeSelected = computed(() => (id) => {
@@ -86,16 +109,14 @@ const toggleUse = (id) => {
 };
 
 const timeout = (ms, promise) => {
-  // 创建一个超时计时器
   const timeoutPromise = new Promise((_, reject) => {
     setTimeout(() => {
       reject(new Error('Operation timed out'));
     }, ms);
   });
-
-  // 使用Promise.race同时执行异步操作和超时计时器
   return Promise.race([promise, timeoutPromise]);
 };
+
 const isLoading = ref(false);
 const handleSave = async () => {
   isLoading.value = true;
@@ -116,15 +137,13 @@ const handleSave = async () => {
     store.commit('profile/setNode', editItem.value);
   }
   isLoading.value = false;
-  dialogVisible.value = false;
+  dialogState.value = DialogState.CLOSED;
 };
 
 const handleDeleteNode = (item) => {
-  store.commit('profile/deleteNodeList', item.id)
+  store.commit('profile/deleteNodeList', item.id);
 };
-
 </script>
-
 
 <style scoped>
 .card-header {
@@ -135,9 +154,7 @@ const handleDeleteNode = (item) => {
 
 .card-item {
   width: auto;
-  /* 设置卡片宽度 */
   margin: 10px;
-  /* 设置卡片之间的间距 */
   border-radius: 20px;
 }
 

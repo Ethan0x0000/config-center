@@ -48,13 +48,15 @@
       <span>添加订阅</span>
     </el-button>
   </el-card>
-  <el-dialog title="编辑订阅" v-model="editDialogVisible" width="30%" align-center :id="editSub.id">
+  <el-dialog title="编辑订阅" v-model="editDialogVisible" width="50%" align-center :id="editSub.id"
+    :before-close="handleDialogClose">
     <div style="display: flex; flex-direction: row; gap:10px;">
       <el-checkbox v-model="editSub.isUse" label="启用订阅" size="large" @change="highlightSaveButton = 'primary'" />
       <el-checkbox v-model="editSub.isGroup" label="建立分组" size="large" @change="highlightSaveButton = 'primary'" />
       <el-tooltip placement="right" content="启用后可以解决部分节点无法获取的问题(仅适用于订阅链接)" effect="light">
         <el-checkbox v-model="editSub.isEnhanced" label="增强订阅" size="large" />
       </el-tooltip>
+      <el-checkbox v-model="editSub.isConvert" label="启用订阅转换" size="large" />
     </div>
     <el-input v-model="editSub.name" placeholder="请输入订阅名称" size="large" style="margin-top: 10px;" />
     <el-input v-model="editSub.url" placeholder="请输入订阅地址或BASE64信息" size="large" style="margin-top: 10px;" clearable>
@@ -95,9 +97,15 @@ import { useStore } from 'vuex';
 import { Icon } from '@iconify/vue';
 import axios from 'axios';
 import { v4 as uuidV4 } from 'uuid';
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus';
 
 const editDialogVisible = ref(false);
+const dialogState = reactive({
+  loading: false,
+  error: null,
+  data: null
+});
+
 const highlightSaveButton = ref('');
 const available = ref(false);
 const isLoading = reactive({});
@@ -110,48 +118,133 @@ const subs = computed({
   set: (val) => store.commit('profile/setSubs', val),
 });
 
+const backendUrl = computed(() => store.state.user.backendUrl);
+
 const handleEdit = (item) => {
   editDialogVisible.value = true;
-  editSub.value = item;
+  dialogState.data = null;
+  dialogState.error = null;
+
+  try {
+    editSub.value = JSON.parse(JSON.stringify(item));
+    dialogState.data = editSub.value;
+  } catch (error) {
+    dialogState.error = '初始化数据失败';
+    console.error('初始化数据失败:', error);
+    ElMessage.error('初始化数据失败');
+  }
 };
 
 const handleNew = () => {
-  store.commit('profile/addSub');
-  editSub.value = store.state.profile.subs[store.state.profile.subs.length - 1];
   editDialogVisible.value = true;
+  dialogState.data = null;
+  dialogState.error = null;
+
+  try {
+    store.commit('profile/addSub');
+    editSub.value = store.state.profile.subs[store.state.profile.subs.length - 1];
+    dialogState.data = editSub.value;
+  } catch (error) {
+    dialogState.error = '创建新订阅失败';
+    console.error('创建新订阅失败:', error);
+    ElMessage.error('创建新订阅失败');
+  }
+};
+
+const handleDialogClose = (done) => {
+  // 检查是否为有效订阅
+  if (!editSub.value.url) {
+    // 如果是无效订阅，直接删除
+    if (editSub.value.id) {
+      store.commit('profile/deleteSub', editSub.value.id);
+      ElMessage.success('已删除无效订阅');
+    }
+    done();
+    return;
+  }
+
+  // 如果有未保存的更改
+  if (highlightSaveButton.value === 'primary') {
+    ElMessageBox.confirm('您有未保存的更改，确定要关闭吗？', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    }).then(() => {
+      resetDialogState();
+      done();
+    }).catch(() => { });
+  } else {
+    resetDialogState();
+    done();
+  }
+};
+
+const resetDialogState = () => {
+  highlightSaveButton.value = '';
+  editSub.value = {};
+  dialogState.data = null;
+  dialogState.error = null;
 };
 
 function removeDuplicates(arrA, arrB, prop) {
-  // 创建 Set 存储 arrA 中元素的指定属性对象
   const propValuesInA = new Set(arrA.map(item => JSON.stringify(item[prop])));
-
-  // 过滤 arrB,移除指定属性对象在 arrA 中存在的元素
   const filteredArrB = arrB.filter(item => {
     const propValue = item[prop];
     return !propValuesInA.has(JSON.stringify(propValue));
   });
-
   return filteredArrB;
 }
+
 const handleSaveEdit = () => {
-  store.commit('profile/setSub', editSub);
-  editDialogVisible.value = false;
-  if (editSub.value.isUse && !editSub.value.isGroup && editSub.value.usedNodes.length !== 0) {
-    let nodes = store.state.profile.nodeList;
-    let addNodes = editSub.value.usedNodes.map(index => {
-      return {
-        id: uuidV4(),
-        name: editSub.value.subNodes[index].name,
-        content: editSub.value.subNodes[index].content
+  dialogState.loading = true;
+  dialogState.error = null;
+
+  try {
+    // 检查是否为有效订阅
+    if (!editSub.value.name && !editSub.value.url) {
+      if (editSub.value.id) {
+        store.commit('profile/deleteSub', editSub.value.id);
       }
-    });
-    let filteredNodes = removeDuplicates(nodes, addNodes, 'content');
-    if (filteredNodes.length !== 0) {
-      store.commit('profile/setNodeList', nodes.concat(filteredNodes));
-      for (let i = 0; i < filteredNodes.length; i++) {
-        store.commit('profile/addNodeID', { profileID: currentProfileID.value, nodeID: filteredNodes[i].id })
+      editDialogVisible.value = false;
+      ElMessage.success('已删除无效订阅');
+      return;
+    }
+
+    // 验证订阅URL格式
+    if (editSub.value.url && !isValidUrl(editSub.value.url) && !isBase64(editSub.value.url)) {
+      ElMessage.error('订阅地址格式不正确');
+      return;
+    }
+
+    // 保存有效订阅
+    store.commit('profile/setSub', editSub);
+    editDialogVisible.value = false;
+    ElMessage.success('订阅保存成功');
+
+    // 如果订阅启用且不是分组，处理节点
+    if (editSub.value.isUse && !editSub.value.isGroup && editSub.value.usedNodes.length !== 0) {
+      let nodes = store.state.profile.nodeList;
+      let addNodes = editSub.value.usedNodes.map(index => {
+        return {
+          id: uuidV4(),
+          name: editSub.value.subNodes[index].name,
+          content: editSub.value.subNodes[index].content
+        }
+      });
+      let filteredNodes = removeDuplicates(nodes, addNodes, 'content');
+      if (filteredNodes.length !== 0) {
+        store.commit('profile/setNodeList', nodes.concat(filteredNodes));
+        for (let i = 0; i < filteredNodes.length; i++) {
+          store.commit('profile/addNodeID', { profileID: currentProfileID.value, nodeID: filteredNodes[i].id })
+        }
       }
     }
+  } catch (error) {
+    dialogState.error = '保存订阅失败';
+    console.error('保存订阅失败:', error);
+    ElMessage.error('保存订阅失败');
+  } finally {
+    dialogState.loading = false;
   }
 };
 
@@ -160,16 +253,21 @@ function decode(str) {
   const encodedString = encodeURIComponent(decodedString).replace(/%0D%0A/g, '%7C');
   return encodedString;
 }
-function isBase64(str) {
-  // Base64 字符正则表达式
-  const base64Regex = /^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)?$/;
 
-  // 如果字符串为空或不是字符串类型,返回 false
+function isValidUrl(url) {
+  try {
+    new URL(url);
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
+function isBase64(str) {
+  const base64Regex = /^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)?$/;
   if (!str || typeof str !== 'string') {
     return false;
   }
-
-  // 使用正则表达式测试字符串是否为 Base64 编码
   return base64Regex.test(str);
 }
 
@@ -177,42 +275,40 @@ const getSubNodes = async (sub) => {
   isLoading[sub.id] = true;
   try {
     let url = sub.url;
-    if (!sub.isEnhanced) {
-      let content = '';
-      if (isBase64(sub.url)) {
-        content = decode(sub.url);
-      } else {
-        const res = await axios.get(url);
-        content = decode(res.data);
-      }
-      // console.log(content);
-      url = 'https://url.v1.mk/sub?target=singbox&url=' + content + '&insert=false&emoji=true&list=true&xudp=true&udp=true&tfo=false&expand=false&scv=true&fdn=false&singbox.ipv6=1'
-      const response = await fetch(url);
-      const data = await response.json();
-      console.log(data);
-      sub.subNodes = data.outbounds.map(node => ({ name: node.tag, content: node }));
+    let content = '';
+    if (isBase64(sub.url)) {
+      content = decode(sub.url);
     } else {
-      url = url + '&flag=sing-box&types=all';
-      const response = await axios.get(url);
-      const data = response.data;
-      sub.subNodes = data.outbounds.filter(item => item.type !== 'selector' && item.type !== 'urltest' && item.type !== 'direct' && item.type !== 'block' && item.type !== 'dns').map(node => ({ name: node.tag, content: node }));
+      content = sub.url;
     }
+    if (!sub.isEnhanced) {
+      const processedContent = content.replace(/ /g, '|');
+      url = sub.isConvert
+        ? 'https://sub.789.st/sub?target=singbox&url=' + encodeURIComponent(processedContent) + '&insert=false&emoji=true&list=true&xudp=true&udp=true&tfo=false&expand=false&scv=true&fdn=false&singbox.ipv6=1'
+        : content;
+    } else {
+      url = content + '&flag=sing-box&types=all';
+    }
+
+    const response = await axios.post(`http://${backendUrl.value}/get-node`, {
+      url: url,
+      isEnhanced: sub.isEnhanced
+    });
+    const data = response.data;
+    sub.subNodes = data?.outbounds?.map(node => ({ name: node.tag, content: node })) || [];
     sub.subNodes.forEach(item => {
       const { name } = item;
-
-      // 检查 name 是否包含 "剩余流量"
       const remainingDataMatch = name.match(/剩余流量：(.+)/);
       if (remainingDataMatch) {
         sub.remainingData = remainingDataMatch[1];
       }
-
-      // 检查 name 是否包含 "套餐到期"
       const expirationDateMatch = name.match(/套餐到期：(.+)/);
       if (expirationDateMatch) {
         sub.expirationDate = expirationDateMatch[1];
       }
     });
     ElMessage.success('获取成功');
+    console.log(sub.subNodes);
     available.value = false;
   } catch (error) {
     console.log(error);

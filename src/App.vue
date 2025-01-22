@@ -5,9 +5,11 @@
         <HeaderLayout />
       </div>
       <div class="container">
-        <div class="aside" v-show="store.state.user.asideOpen">
-          <AsideLayout />
-        </div>
+        <transition name="slide">
+          <div class="aside" v-show="store.state.user.asideOpen" :style="{ width: store.state.user.asideWidth + 'px' }">
+            <AsideLayout />
+          </div>
+        </transition>
         <div class="content">
           <el-scrollbar class="scrollbar">
             <div class="main">
@@ -30,6 +32,20 @@ import { onMounted, onUnmounted, ref } from 'vue'
 
 const store = useStore()
 
+// 从localStorage加载用户偏好
+const loadUserPreference = () => {
+  const asideOpen = localStorage.getItem('asideOpen')
+  const asideWidth = localStorage.getItem('asideWidth')
+
+  if (asideOpen !== null) {
+    store.commit('user/setAsideOpen', asideOpen === 'true')
+  }
+
+  if (asideWidth !== null) {
+    store.commit('user/setAsideWidth', parseInt(asideWidth))
+  }
+}
+
 const viewZoneRef = ref(null)
 const breakpointWidth = 768 // 设置断点宽度为 768px
 // 监听 .view-zone 元素宽度变化
@@ -48,13 +64,30 @@ function handleResize() {
 }
 
 onMounted(() => {
+  loadUserPreference()
   handleResize() // 初始时检查一次
   resizeObserver = new ResizeObserver(handleResize)
-  resizeObserver.observe(viewZoneRef.value);
+  resizeObserver.observe(viewZoneRef.value)
+
+  // 监听侧栏状态变化
+  store.watch(
+    (state) => state.user.asideOpen,
+    (newVal) => {
+      localStorage.setItem('asideOpen', newVal)
+    }
+  )
+
+  // 监听侧栏宽度变化
+  store.watch(
+    (state) => state.user.asideWidth,
+    (newVal) => {
+      localStorage.setItem('asideWidth', newVal)
+    }
+  )
 
   //页面加载时先初始化规则集和配置信息
-  store.dispatch("rule_sets/initRuleSets");
-  store.dispatch('profile/initProfile');
+  store.dispatch("rule_sets/initRuleSets")
+  store.dispatch('profile/initProfile')
 })
 
 onUnmounted(() => {

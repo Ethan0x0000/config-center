@@ -7,16 +7,10 @@ const rule_set = {
     // 要获取规则集列表的仓库信息
     repositories: [
       {
-        owner: 'MetaCubeX',
-        repo: 'meta-rules-dat',
-        branch: 'sing',
-        targetPath: 'geo',
-      },
-      {
         owner: 'Ethan0x0000',
         repo: 'rule-set',
         branch: 'main',
-        targetPath: 'singbox',
+        targetPath: 'singbox'
       },
     ],
   },
@@ -76,7 +70,7 @@ const rule_set = {
             .map(item => ({
               value: item,
               repo: `${owner}/${repo}`,
-              url: `https://mirror.ghproxy.com/https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${targetPath}/${item.replace(/(-)(.*?)/, (_, m1, m2) => m1 ? '/' + m2 : m2)}.srs`,
+              url: `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${targetPath}/${item.replace(/(-)(.*?)/, (_, m1, m2) => m1 ? '/' + m2 : m2)}.srs`,
             }));
           return finalRuleSets;
         });

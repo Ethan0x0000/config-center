@@ -7,10 +7,10 @@ export const experimental = {
   },
   clash_api: {
     external_ui: 'ui',
-    external_controller: '0.0.0.0:9090',
-    external_ui_download_detour: 'direct',
+    external_controller: '127.0.0.1:9090',
+    external_ui_download_detour: 'Proxy',
     default_mode: 'rule',
-    external_ui_download_url: 'https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/Yacd-meta@archive/gh-pages.zip'
+    external_ui_download_url: 'https://github.com/Ethan0x0000/rule-set/releases/download/1.0/MetaXCubed.zip'
   }
 }
 
@@ -192,20 +192,13 @@ export const inbounds = {
     {
       type: 'tun',
       interface_name: 'sb-tun',
-      inet4_address: '172.19.0.1/30',
+      address: '172.19.0.1/30',
       stack: 'system',
       sniff: true,
       auto_route: true,
       strict_route: true,
       sniff_override_destination: true,
       gso: false
-    },
-    {
-      type: 'direct',
-      listen: '::',
-      listen_port: 53,
-      sniff: true,
-      tag: 'dns-in'
     }
   ],
   mobile: [
@@ -218,8 +211,8 @@ export const inbounds = {
     },
     {
       type: 'tun',
-      interface_name: 'sb-tun',
-      inet4_address: '172.19.0.1/30',
+      interface_name: 'tun-in',
+      address: '172.19.0.1/30',
       stack: 'system',
       sniff: true,
       auto_route: true,
@@ -243,37 +236,23 @@ export const inbounds = {
       sniff: true
     },
     {
-      type: 'redirect',
-      tag: 'redirect-in',
-      listen: '::',
-      sniff_override_destination: true,
-      listen_port: 9887,
-      sniff: true
-    },
-    {
       type: 'tun',
-      interface_name: 'tun-in',
-      inet4_address: '172.19.0.1/30',
-      stack: 'system',
+      tag: 'tun-in',
+      interface_name: 'tun0',
+      address: [
+        '172.18.0.1/30',
+        'fdfe:dcba:9876::1/126'
+      ],
+      mtu: 9000,
+      auto_route: true,
+      iproute2_table_index: 2022,
+      iproute2_rule_index: 9000,
+      auto_redirect: true,
+      auto_redirect_input_mark: '0x2023',
+      auto_redirect_output_mark: '0x2024',
+      strict_route: true,
       sniff: true,
-      auto_route: false,
-      sniff_override_destination: true,
-      gso: false
-    },
-    {
-      type: 'tproxy',
-      tag: 'tproxy-in',
-      listen: '::',
-      listen_port: 9888,
-      sniff_override_destination: true,
-      sniff: true
-    },
-    {
-      type: 'direct',
-      tag: 'direct-in',
-      listen: '::',
-      listen_port: 5353,
-      sniff: true
+      sniff_override_destination: true
     }
   ]
 }
