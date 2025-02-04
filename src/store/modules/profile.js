@@ -129,7 +129,7 @@ function generateOutboundGroups(outbounds, subs, rules, blocks, udRules, isTogSh
   };
   let autoGroup = {
     tag: '⚡️ Auto',
-    outbounds: outboundNames.concat(['🇨🇳 Direct']),
+    outbounds: outboundNames,
     type: 'urltest',
     url: 'https://www.gstatic.com/generate_204',
     interval: '3m',

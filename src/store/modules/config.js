@@ -101,10 +101,11 @@ export const dns = {
         server: 'fakeip-dns'
       }
     ],
-    strategy: 'ipv4_only',
+    strategy: 'prefer_ipv4',
     fakeip: {
       enabled: true,
-      inet4_range: '198.18.0.0/15'
+      inet4_range: '198.18.0.0/15',
+      inet6_range: 'fc00::/18'
     }
   },
   realip: {
@@ -236,21 +237,10 @@ export const inbounds = {
       sniff: true
     },
     {
-      type: 'tun',
-      tag: 'tun-in',
-      interface_name: 'tun0',
-      address: [
-        '172.18.0.1/30',
-        'fdfe:dcba:9876::1/126'
-      ],
-      mtu: 9000,
-      auto_route: true,
-      iproute2_table_index: 2022,
-      iproute2_rule_index: 9000,
-      auto_redirect: true,
-      auto_redirect_input_mark: '0x2023',
-      auto_redirect_output_mark: '0x2024',
-      strict_route: true,
+      type: 'tproxy',
+      tag: 'tproxy-in',
+      listen: '::',
+      listen_port: 9888,
       sniff: true,
       sniff_override_destination: true
     }

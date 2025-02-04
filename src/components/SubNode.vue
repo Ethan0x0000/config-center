@@ -217,7 +217,7 @@ const handleSaveEdit = () => {
     }
 
     // 保存有效订阅
-    store.commit('profile/setSub', editSub);
+    store.commit('profile/setSub', JSON.parse(JSON.stringify(editSub.value)));
     editDialogVisible.value = false;
     ElMessage.success('订阅保存成功');
 
