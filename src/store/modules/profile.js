@@ -508,7 +508,7 @@ function modifyRoutes(config, profile) {
     }).filter(ruleObj => ruleObj !== null);
   }
 
-  config.route.rules = config.route.rules.concat(blockRules, priorityUdRules, proxyRules, directRules, nonPriorityUdRules);
+  config.route.rules = config.route.rules.concat(blockRules, priorityUdRules, proxyRules, nonPriorityUdRules, directRules);
 }
 
 async function modifyConfig(config, subs, nodeList, profile, global) {

@@ -1,46 +1,140 @@
 <template>
-  <el-card shadow="always" style="margin-bottom: 20px;">
-    <div class="user-info">
-      <el-text style="width:80px;">后端地址:</el-text>
-      <el-input class="input-box" v-model="backendUrl" size="default" placeholder="请输入地址" />
-    </div>
-    <div class="kernel-info">
-      <div class="kernel-status">
-        <el-text style="width:80px;">内核状态: </el-text>
-        <el-text :type="kernelStatus.type">{{ kernelStatus.text }}</el-text>
-      </div>
-      <div class="kernel-version">
-        <el-text>版本: {{ kernelVersionInfo.current }}</el-text>
-        <el-text v-if="kernelVersionInfo.current !== kernelVersionInfo.latest"> 可更新至:
-          {{ kernelVersionInfo.latest }}</el-text>
-      </div>
-    </div>
-  </el-card>
-  <el-card shadow="hover">
-    <template #header>
-      <el-text type="primary" size="large" style="display: flex; justify-content: center;">指令集合</el-text>
-    </template>
-    <div class="action-btn">
-      <el-button type="primary" @click="restartKernel" :loading="restartState"
-        style="display: flex;justify-content: center;align-items: center;width: 49%;height: 40px; margin:0px 0px 5px 0px;">重启内核</el-button>
-      <el-button type="primary" @click="upgradeKernel" :loading="upgradeState"
-        style="display: flex;justify-content: center;align-items: center;width: 49%;height: 40px; margin:0px 0px 5px 0px;">升级内核</el-button>
-      <el-button type="primary" @click="reloadRuleSets" :loading="reloadState"
-        style="display: flex;justify-content: center;align-items: center;width: 49%;height: 40px; margin:0px 0px 5px 0px;">重载规则集列表</el-button>
-      <el-button type="primary" @click="refreshStatus" :loading="refreshState"
-        style="display: flex;justify-content: center;align-items: center;width: 49%;height: 40px; margin:0px 0px 5px 0px;">刷新状态</el-button>
-    </div>
-  </el-card>
+  <div class="board-container">
+    <!-- Header Section with Backend URL -->
+    <el-row class="mb-4">
+      <el-col :span="24">
+        <el-card shadow="hover" class="url-card">
+          <el-input v-model="backendUrl" size="large" placeholder="请输入后端地址" :prefix-icon="Connection">
+            <template #prepend>后端地址</template>
+          </el-input>
+        </el-card>
+      </el-col>
+    </el-row>
+
+    <!-- Status Dashboard -->
+    <el-row :gutter="20" class="mb-4">
+      <el-col :span="8">
+        <el-card shadow="hover" class="status-card">
+          <template #header>
+            <div class="card-header">
+              <span>
+                内核状态
+                <el-button type="default" :icon="Refresh" circle size="small" @click="refreshStatus"
+                  :loading="refreshState" style="border: none;" />
+              </span>
+              <el-tag :type="kernelStatus.type === 'success' ? 'success' : 'danger'" size="small">
+                {{ kernelStatus.text }}
+              </el-tag>
+            </div>
+          </template>
+          <el-descriptions :column="1" border>
+            <el-descriptions-item label="当前版本">
+              {{ kernelVersionInfo.current }}
+            </el-descriptions-item>
+            <el-descriptions-item label="最新版本">
+              <div class="core-version-info">
+                <span>{{ kernelVersionInfo.latest }}</span>
+                <el-button v-if="kernelVersionInfo.current !== kernelVersionInfo.latest" type="warning" size="small"
+                  class="ml-2" @click="upgradeKernel" :loading="upgradeState" plain>
+                  <el-icon class="mr-1">
+                    <ArrowUpBold />
+                  </el-icon>
+                  升级
+                </el-button>
+              </div>
+            </el-descriptions-item>
+          </el-descriptions>
+        </el-card>
+      </el-col>
+
+      <el-col :span="16">
+        <el-card shadow="hover" class="control-card">
+          <template #header>
+            <div class="card-header">
+              <span>内核控制</span>
+            </div>
+          </template>
+
+          <el-row :gutter="20">
+            <el-col :span="6">
+              <el-button type="primary" :icon="VideoPlay" @click="restartKernel" :loading="restartState"
+                class="control-btn">
+                启动内核
+              </el-button>
+            </el-col>
+            <el-col :span="6">
+              <el-button type="danger" :icon="VideoPause" @click="stopKernel" :loading="stopState" class="control-btn">
+                停止内核
+              </el-button>
+            </el-col>
+            <el-col :span="6">
+              <el-button type="info" :icon="Document" @click="showServiceLogs" class="control-btn">
+                查看日志
+              </el-button>
+            </el-col>
+          </el-row>
+        </el-card>
+      </el-col>
+    </el-row>
+
+    <!-- Utility Functions -->
+    <el-row class="mb-4">
+      <el-col :span="24">
+        <el-card shadow="hover" class="util-card">
+          <template #header>
+            <div class="card-header">
+              <span>其他功能</span>
+            </div>
+          </template>
+          <el-space wrap>
+            <el-button type="primary" :icon="RefreshRight" @click="reloadRuleSets" :loading="reloadState">
+              重载规则集列表
+            </el-button>
+            <el-button type="warning" :icon="Delete" @click="clearCache" :loading="clearingState">
+              清除缓存
+            </el-button>
+          </el-space>
+        </el-card>
+      </el-col>
+    </el-row>
+
+    <!-- Logs Drawer -->
+    <el-drawer v-model="logDrawerVisible" title="服务日志" size="50%" :destroy-on-close="true">
+      <template #header>
+        <div class="drawer-header">
+          <span>服务日志</span>
+          <el-button type="primary" :icon="Download" size="small" @click="downloadLogs">
+            导出日志
+          </el-button>
+        </div>
+      </template>
+      <el-scrollbar height="calc(100vh - 150px)">
+        <pre class="log-content">{{ serviceLogs }}</pre>
+      </el-scrollbar>
+    </el-drawer>
+  </div>
 </template>
 
 <script setup>
-import { ElMessage } from 'element-plus';
-import { computed, onMounted, ref } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useStore } from 'vuex';
+import { ElMessage } from 'element-plus';
 import axios from 'axios';
+import {
+  ArrowUpBold,
+  Connection,
+  Refresh,
+  RefreshRight,
+  Download,
+  Document,
+  Delete,
+  VideoPause,
+  VideoPlay
+} from '@element-plus/icons-vue';
 
 const store = useStore();
 
+// Computed properties
 const backendUrl = computed({
   get: () => store.state.user.backendUrl,
   set: (value) => store.commit('user/setBackendUrl', value)
@@ -49,18 +143,30 @@ const backendUrl = computed({
 const kernelStatus = computed(() => store.state.user.kernelStatus);
 const kernelVersionInfo = computed(() => store.state.user.kernelVersionInfo);
 
+// State management
+const restartState = ref(false);
+const stopState = ref(false);
+const upgradeState = ref(false);
+const reloadState = ref(false);
+const refreshState = ref(false);
+const clearingState = ref(false);
+const logDrawerVisible = ref(false);
+const serviceLogs = ref('');
+
+// Lifecycle hooks
 onMounted(() => {
   store.dispatch('profile/initProfile');
+  refreshStatus();
 });
 
-
-const restartState = ref(false);
+// Methods
 const restartKernel = async () => {
   restartState.value = true;
   try {
     const res = await axios.post(`http://${backendUrl.value}/restart-kernel`);
     if (res.status === 200) {
-      ElMessage.success(`重启内核成功`);
+      ElMessage.success('重启内核成功');
+      await refreshStatus();
     } else {
       ElMessage.error(`重启内核失败: ${res.data}`);
     }
@@ -71,7 +177,23 @@ const restartKernel = async () => {
   restartState.value = false;
 };
 
-const upgradeState = ref(false);
+const stopKernel = async () => {
+  stopState.value = true;
+  try {
+    const res = await axios.post(`http://${backendUrl.value}/stop-kernel`);
+    if (res.status === 200) {
+      ElMessage.success('停止内核成功');
+      await refreshStatus();
+    } else {
+      ElMessage.error(`停止内核失败: ${res.data}`);
+    }
+  } catch (error) {
+    console.error(error);
+    ElMessage.error('停止内核失败');
+  }
+  stopState.value = false;
+};
+
 const upgradeKernel = async () => {
   if (kernelVersionInfo.value.current === kernelVersionInfo.value.latest) {
     ElMessage.warning('当前内核版本已是最新版本');
@@ -81,7 +203,8 @@ const upgradeKernel = async () => {
   try {
     const res = await axios.post(`http://${backendUrl.value}/upgrade-kernel`);
     if (res.status === 200) {
-      ElMessage.success(`升级内核成功`);
+      ElMessage.success('升级内核成功');
+      await refreshStatus();
     } else {
       ElMessage.error(`升级内核失败: ${res.data}`);
     }
@@ -91,9 +214,6 @@ const upgradeKernel = async () => {
   }
   upgradeState.value = false;
 };
-
-const reloadState = ref(false);
-const refreshState = ref(false);
 
 const refreshStatus = async () => {
   refreshState.value = true;
@@ -107,10 +227,11 @@ const refreshStatus = async () => {
   }
   refreshState.value = false;
 };
+
 const reloadRuleSets = async () => {
   reloadState.value = true;
   try {
-    store.dispatch('rule_sets/fetchRuleSets');
+    await store.dispatch('rule_sets/fetchRuleSets');
     ElMessage.success('规则集列表已重新加载');
   } catch (error) {
     console.error(error);
@@ -119,29 +240,109 @@ const reloadRuleSets = async () => {
   reloadState.value = false;
 };
 
+const showServiceLogs = async () => {
+  try {
+    const res = await axios.get(`http://${backendUrl.value}/service-logs`);
+    if (res.status === 200) {
+      serviceLogs.value = res.data;
+      logDrawerVisible.value = true;
+    } else {
+      ElMessage.error('获取服务日志失败');
+    }
+  } catch (error) {
+    console.error(error);
+    ElMessage.error('获取服务日志失败');
+  }
+};
 
+const downloadLogs = async () => {
+  try {
+    const res = await axios.get(`http://${backendUrl.value}/download-logs`, {
+      responseType: 'blob'
+    });
+    const url = window.URL.createObjectURL(new Blob([res.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `service-logs-${new Date().toISOString()}.txt`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    ElMessage.success('日志导出成功');
+  } catch (error) {
+    console.error(error);
+    ElMessage.error('日志导出失败');
+  }
+};
+
+const clearCache = async () => {
+  clearingState.value = true;
+  try {
+    const res = await axios.post(`http://${backendUrl.value}/clear-cache`);
+    if (res.status === 200) {
+      ElMessage.success('缓存清除成功');
+    } else {
+      ElMessage.error('缓存清除失败');
+    }
+  } catch (error) {
+    console.error(error);
+    ElMessage.error('缓存清除失败');
+  }
+  clearingState.value = false;
+};
 </script>
 
 <style scoped>
-.user-info {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-content: center;
-  margin-bottom: 20px;
+.board-container {
+  padding: 20px;
 }
 
-.kernel-info {
+.mb-4 {
+  margin-bottom: 16px;
+}
+
+.ml-2 {
+  margin-left: 8px;
+}
+
+.mr-1 {
+  margin-right: 4px;
+}
+
+.card-header {
   display: flex;
-  flex-direction: row;
   justify-content: space-between;
-  align-content: center;
+  align-items: center;
 }
 
-.action-btn {
+.drawer-header {
   display: flex;
-  flex-wrap: wrap;
-  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.status-card,
+.control-card,
+.util-card {
+  height: 100%;
+}
+
+.control-btn {
+  width: 100%;
+}
+
+.log-content {
+  padding: 16px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  font-family: monospace;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.core-version-info {
+  display: flex;
+  align-items: center;
   justify-content: space-between;
 }
 </style>
