@@ -72,7 +72,7 @@ function modifyGlobal(config, profile, global) {
 }
 
 // 出站配置
-async function generateOutbounds(nodeList, subs, nodeIDs) {
+async function generateOutbounds(nodeList, subs, nodeIDs, rootState) {
   let nodes = nodeList.filter(node => nodeIDs.includes(node.id));
   for (let i = 0; i < subs.length; i++) {
     if (subs[i].isGroup) {
@@ -88,6 +88,12 @@ async function generateOutbounds(nodeList, subs, nodeIDs) {
   return nodes.map(node => {
     let outbound = deepCopy(node.content);
     outbound.tag = node.name;
+
+    // 版本判断逻辑
+    if (outbound.domain_resolver && rootState.user.kernelVersionInfo.current < "1.12.0") {
+      delete outbound.domain_resolver;
+    }
+
     return outbound;
   });
 }
@@ -511,7 +517,7 @@ function modifyRoutes(config, profile) {
   config.route.rules = config.route.rules.concat(blockRules, priorityUdRules, proxyRules, nonPriorityUdRules, directRules);
 }
 
-async function modifyConfig(config, subs, nodeList, profile, global) {
+async function modifyConfig(config, subs, nodeList, profile, global, rootState) {
   try {
     // 全局配置
     modifyGlobal(config, profile, global);
@@ -523,7 +529,7 @@ async function modifyConfig(config, subs, nodeList, profile, global) {
     modifyInbounds(config, profile, global);
 
     // 出站配置
-    let outbounds = await generateOutbounds(nodeList, subs, profile.nodeIDs);
+    let outbounds = await generateOutbounds(nodeList, subs, profile.nodeIDs, rootState);
     let outboundGroups = generateOutboundGroups(outbounds, subs, profile.proxyRules, profile.blockRules, profile.udRules, profile.isUseGlobal ? global.isTogShut : profile.isTogShut);
     config.outbounds = config.outbounds.concat(outbounds, outboundGroups);
 
@@ -888,7 +894,7 @@ const profile = {
       commit('copyProfile', id);
       commit('setProfilesMap');
     },
-    async generateConfig({ commit, state }, id) {
+    async generateConfig({ commit, state, rootState }, id) {
       const profile = state.profilesMap[id];
       let config = {
         experimental: deepCopy(experimental),
@@ -901,7 +907,7 @@ const profile = {
 
 
       try {
-        config = await modifyConfig(config, state.subs, state.nodeList, profile, state.global);
+        config = await modifyConfig(config, state.subs, state.nodeList, profile, state.global, rootState);
         const jsonConfig = JSON.stringify(config, null, 2);
         commit('setProfileValue', { profileID: id, value: jsonConfig });
         ElMessage.success('配置生成成功');
