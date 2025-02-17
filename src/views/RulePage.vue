@@ -55,11 +55,16 @@ onMounted(() => {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
+  background-color: var(--bg-color);
+  color: var(--text-color);
 }
 
 .rule-card {
   min-width: 420px;
   width: 49%;
   margin-bottom: 20px;
+  background-color: var(--bg-color);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
 }
 </style>

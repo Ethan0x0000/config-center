@@ -18,8 +18,8 @@
             </template>
           </el-autocomplete>
           <!-- 这里的按钮用来查看规则集详情 -->
-          <el-button class="view-btn" @click="handleView(item)" color="transparent" circle>
-            <Icon icon="fa6-solid:code" class="view-icon" />
+          <el-button class="edit-btn" @click="handleView(item)" color="transparent" circle>
+            <Icon icon="mingcute:edit-line" class="view-icon" />
           </el-button>
           <!-- 这里的按钮用来删除规则集 -->
           <el-button class="delete-btn" @click="handleDelete(item)" color="transparent" circle>
@@ -36,7 +36,15 @@
   </el-button>
   <!-- 弹出对话框用来展示代码 -->
   <el-dialog class="code-dialog" v-model="dialogVisible" title="规则集详情" align-center>
-    <CodeDisplay :key="dialogVisible" :content="jsonData" :readOnly="readOnly" />
+    <div style="margin-bottom: 20px;">
+      <div style="margin-bottom: 8px; font-weight: 500;">分组名</div>
+      <el-input v-model="currentRuleName" placeholder="请输入分组名" clearable @blur="updateRuleName" />
+      <div style="margin-top: 10px; color: #666;">
+        规则链接: {{ currentRuleItem?.url }}
+        <el-button style="margin-left: 10px;" type="primary" @click="loadRuleCode" :loading="loading">加载规则代码</el-button>
+      </div>
+    </div>
+    <CodeDisplay v-if="showCode" :key="dialogVisible" :content="jsonData" :readOnly="readOnly" />
   </el-dialog>
 </template>
 
@@ -47,13 +55,16 @@ import { useStore } from 'vuex';
 import { ref, defineProps, computed } from 'vue';
 import { Icon } from '@iconify/vue';
 import { VueDraggable } from 'vue-draggable-plus';
-import { ElLoading } from 'element-plus';
+import { ElMessage } from 'element-plus';
 
 const store = useStore();
 const dialogVisible = ref(false);
 const jsonData = ref('');
 const readOnly = true;
 const loading = ref(null); // 用于控制加载动画
+const currentRuleName = ref(''); // 当前查看的规则名称
+const currentRuleItem = ref(null); // 当前查看的规则项，包含url等完整信息
+const showCode = ref(false); // 控制是否显示代码框
 
 const props = defineProps({
   module: {
@@ -111,28 +122,45 @@ const handleBlur = (item) => {
 
 const handleView = async (item) => {
   if (item.url) {
-    // 修改URL，将末端的.srs改为.json
-    const modifiedUrl = item.url.replace(/\.srs$/, '.json');
-    try {
-      // 开启全屏加载动画
-      loading.value = ElLoading.service({
-        lock: true,
-        text: '加载中...',
-        background: 'rgba(0, 0, 0, 0.7)',
-      });
+    currentRuleItem.value = item;
+    currentRuleName.value = item.groupName;
+    dialogVisible.value = true;
+    // 重置状态
+    showCode.value = false;
+    jsonData.value = '';
+  }
+};
 
-      const response = await fetch(modifiedUrl);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      jsonData.value = await response.text();
-      dialogVisible.value = true;
-    } catch (error) {
-      console.error('Failed to fetch JSON data:', error);
-    } finally {
-      // 关闭全屏加载动画
-      loading.value.close();
+const updateRuleName = () => {
+  if (currentRuleItem.value) {
+    // 只更新groupName
+    currentRuleItem.value.groupName = currentRuleName.value;
+    store.commit('profile/setProfileArrayItem', {
+      profileID: currentProfileID.value,
+      arrayName: props.module,
+      payload: currentRuleItem.value
+    });
+  }
+};
+
+const loadRuleCode = async () => {
+  if (!currentRuleItem.value?.url) return;
+
+  try {
+    loading.value = true;
+    const modifiedUrl = currentRuleItem.value.url.replace(/\.srs$/, '.json');
+    const response = await fetch(modifiedUrl);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
+    jsonData.value = await response.text();
+    showCode.value = true; // 加载成功后显示代码框
+  } catch (error) {
+    console.error('Failed to fetch JSON data:', error);
+    ElMessage.error('加载规则代码失败');
+    showCode.value = false; // 加载失败时不显示代码框
+  } finally {
+    loading.value = false;
   }
 };
 </script>
@@ -161,12 +189,12 @@ const handleView = async (item) => {
   color: rgb(163, 199, 204);
 }
 
-.view-btn:hover {
+.edit-btn:hover {
   background-color: transparent;
   border-color: transparent;
 }
 
-.view-btn:hover .view-icon {
+.edit-btn:hover .view-icon {
   color: #73e3e7;
 }
 

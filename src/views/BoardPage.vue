@@ -3,7 +3,7 @@
     <!-- Header Section with Backend URL -->
     <el-row class="mb-4">
       <el-col :span="24">
-        <el-card shadow="hover" class="url-card">
+        <el-card shadow="hover" style="background-color: var(--bg-color);">
           <el-input v-model="backendUrl" size="large" placeholder="请输入后端地址" :prefix-icon="Connection">
             <template #prepend>后端地址</template>
           </el-input>
@@ -20,7 +20,8 @@
               <span>
                 内核状态
                 <el-button type="default" :icon="Refresh" circle size="small" @click="refreshStatus"
-                  :loading="refreshState" style="border: none;" />
+                  :loading="refreshState"
+                  style="border: none;   background-color: var(--bg-color); color: var(--text-color);" />
               </span>
               <el-tag :type="kernelStatus.type === 'success' ? 'success' : 'danger'" size="small">
                 {{ kernelStatus.text }}
@@ -99,7 +100,8 @@
     </el-row>
 
     <!-- Logs Drawer -->
-    <el-drawer v-model="logDrawerVisible" title="服务日志" size="50%" :destroy-on-close="true">
+    <el-drawer v-model="logDrawerVisible" title="服务日志" size="50%" :destroy-on-close="true"
+      style="background-color: var(--bg-color);">
       <template #header>
         <div class="drawer-header">
           <span>服务日志</span>
@@ -156,7 +158,6 @@ const serviceLogs = ref('');
 // Lifecycle hooks
 onMounted(() => {
   store.dispatch('profile/initProfile');
-  refreshStatus();
 });
 
 // Methods
@@ -294,24 +295,34 @@ const clearCache = async () => {
 <style scoped>
 .board-container {
   padding: 20px;
+  background-color: var(--bg-color);
+  color: var(--text-color);
 }
 
 .mb-4 {
   margin-bottom: 16px;
+  background-color: var(--bg-color);
+  color: var(--text-color);
 }
 
 .ml-2 {
   margin-left: 8px;
+  background-color: var(--bg-color);
+  color: var(--text-color);
 }
 
 .mr-1 {
   margin-right: 4px;
+  background-color: var(--bg-color);
+  color: var(--text-color);
 }
 
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background-color: var(--bg-color);
+  color: var(--text-color);
 }
 
 .drawer-header {
@@ -319,12 +330,16 @@ const clearCache = async () => {
   justify-content: space-between;
   align-items: center;
   width: 100%;
+  background-color: var(--bg-color);
+  color: var(--text-color);
 }
 
 .status-card,
 .control-card,
 .util-card {
   height: 100%;
+  background-color: var(--bg-color);
+  border: 1px solid var(--border-color);
 }
 
 .control-btn {
@@ -333,7 +348,8 @@ const clearCache = async () => {
 
 .log-content {
   padding: 16px;
-  background-color: #f8f9fa;
+  background-color: var(--bg-color);
+  color: var(--text-color);
   border-radius: 4px;
   font-family: monospace;
   white-space: pre-wrap;

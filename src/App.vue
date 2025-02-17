@@ -5,7 +5,7 @@
         <HeaderLayout />
       </div>
       <div class="container">
-        <transition name="slide">
+        <transition name="aside-slide">
           <div class="aside" v-show="store.state.user.asideOpen" :style="{ width: store.state.user.asideWidth + 'px' }">
             <AsideLayout />
           </div>
@@ -95,14 +95,41 @@ onUnmounted(() => {
 })
 </script>
 
-<style scoped>
+<style>
+:root {
+  --bg-color: #ffffff;
+  --text-color: #303133;
+  --primary-color: #409EFF;
+  --border-color: #DCDFE6;
+}
+
+html,
+body {
+  height: 100%;
+  background-color: var(--bg-color);
+}
+
 html,
 body,
 #app {
   display: flex;
   flex-direction: column;
+  background-color: var(--bg-color);
+  color: var(--text-color);
 }
 
+.theme-btn {
+  border: none;
+  background-color: transparent;
+}
+
+.theme-btn:hover {
+  color: var(--primary-color);
+  background-color: transparent;
+}
+</style>
+
+<style scoped>
 .app {
   display: flex;
   justify-content: center;
@@ -119,7 +146,7 @@ body,
 .header {
   display: flex;
   height: 60px;
-  box-shadow: 0 0px 5px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0px 5px var(--border-color);
   z-index: 999;
 }
 
@@ -127,6 +154,7 @@ body,
   display: flex;
   flex-direction: row;
   height: calc(100% - 60px);
+  overflow: hidden;
 }
 
 .aside {
@@ -138,10 +166,25 @@ body,
 .content {
   flex: 1;
   position: relative;
-  border-left: 1px solid #e0e0e0;
   border-right: 1px solid #e0e0e0;
   border-bottom: 1px solid #e0e0e0;
-  transition: width 0.3s ease;
+  margin-left: 0;
+  position: relative;
+}
+
+.content::before {
+  content: '';
+  position: absolute;
+  left: calc(v-bind('store.state.user.asideWidth + "px"') - 1px);
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.aside-slide-enter-to~.content::before,
+.aside-slide-leave-from~.content::before {
+  left: calc(v-bind('store.state.user.asideWidth + "px"') - 1px);
 }
 
 .scrollbar {
@@ -150,5 +193,26 @@ body,
 
 .main {
   padding: 20px;
+}
+
+.aside-slide-enter-active,
+.aside-slide-leave-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform, opacity;
+
+  &~.content::before {
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+.aside-slide-enter-from,
+.aside-slide-leave-to {
+  transform: translateX(-100%);
+  opacity: 0;
+}
+
+.aside-slide-enter-to~.content,
+.aside-slide-leave-from~.content {
+  margin-left: var(--aside-width);
 }
 </style>

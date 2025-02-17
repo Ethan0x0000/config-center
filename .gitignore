@@ -2,6 +2,7 @@
 node_modules
 /dist
 /src/backend
+/.history
 
 
 # local env files

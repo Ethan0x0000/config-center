@@ -1,5 +1,5 @@
 <template>
-  <el-card shadow="hover" style="width: 100%; margin-top: 20px;">
+  <el-card shadow="hover" style="width: 100%; margin-top: 20px; background-color: var(--bg-color);">
     <template #header>
       <div class="card-header" style="display: flex; justify-content: center;">
         <el-text type="primary" size="large">订阅管理</el-text>
@@ -7,26 +7,27 @@
     </template>
     <VueDraggable v-model="subs" handle=".drag-handle" :animation="150" ghostClass="ghost">
       <div class="sub-list" v-for="item in subs" :key="item.id">
-        <el-card class="sub-card" shadow="hover">
+        <el-card class="sub-card" shadow="hover" style="background-color: var(--bg-color);">
           <template #header>
             <div class="card-header">
               <Icon class="drag-handle" icon="system-uicons:drag" width="32" height="32" />
               <div style="display: flex; flex-direction: row; align-items: center; gap: 10px;">
-                <el-button style="width: 32px;border: none;" @click="getSubNodes(item)" :loading="isLoading[item.id]">
+                <el-button style="width: 32px;border: none;background-color: transparent;" @click="getSubNodes(item)"
+                  :loading="isLoading[item.id]">
                   <Icon icon="mingcute:refresh-3-line" width="24" height="24" />
                 </el-button>
                 <el-text>{{ item.name }}</el-text>
               </div>
               <div class="header-btn">
                 <el-tooltip placement="top" content="点击编辑" effect="light">
-                  <el-button style="width: 32px;border: none;" @click="handleEdit(item)">
+                  <el-button style="width: 32px;border: none; background-color: transparent;" @click="handleEdit(item)">
                     <Icon icon="mingcute:edit-line" width="24" height="24" />
                   </el-button>
                 </el-tooltip>
                 <el-popconfirm title="确认删除该配置?" @confirm="store.commit('profile/deleteSub', item.id)"
                   :confirm-button-text="'确定'" :cancel-button-text="'取消'">
                   <template #reference>
-                    <el-button class="delete-btn" style="width: 32px;border: none;">
+                    <el-button class="delete-btn" style="width: 32px;border: none;background-color: transparent;">
                       <Icon class="delete-icon" icon="material-symbols:delete-outline" width="24" height="24" />
                     </el-button>
                   </template>
@@ -49,7 +50,7 @@
     </el-button>
   </el-card>
   <el-dialog title="编辑订阅" v-model="editDialogVisible" width="50%" align-center :id="editSub.id"
-    :before-close="handleDialogClose">
+    :before-close="handleDialogClose" style="background-color: var(--bg-color);">
     <div style="display: flex; flex-direction: row; gap:10px;">
       <el-checkbox v-model="editSub.isUse" label="启用订阅" size="large" @change="highlightSaveButton = 'primary'" />
       <el-checkbox v-model="editSub.isGroup" label="建立分组" size="large" @change="highlightSaveButton = 'primary'" />
@@ -343,10 +344,12 @@ const getSubNodes = async (sub) => {
 
 .delete-icon {
   color: #dd7171;
+  background-color: transparent;
 }
 
 .delete-btn:hover .delete-icon {
   color: #ff0000;
+  background-color: transparent;
 }
 
 .ghost {

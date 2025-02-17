@@ -50,7 +50,6 @@ import { Icon } from '@iconify/vue';
 const route = useRoute();
 const activeMenuKey = ref('');
 
-
 onMounted(() => {
   activeMenuKey.value = route.path;
 });
@@ -61,7 +60,6 @@ watch(
     activeMenuKey.value = newPath;
   }
 );
-
 </script>
 
 <style scoped>
@@ -73,10 +71,12 @@ watch(
   margin-top: 20px;
   width: 100%;
   border: none;
+  background-color: transparent;
+  color: var(--text-color);
 }
 
 .side-menu :deep(.el-menu-item.is-active) {
-  border-right: 3px solid #409eff;
-  background-color: #ecf5ff;
+  border-right: 3px solid var(--primary-color);
+  background-color: var(--bg-color);
 }
 </style>

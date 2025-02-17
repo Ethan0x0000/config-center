@@ -79,7 +79,8 @@
             </div>
           </div>
         </template>
-        <el-card shadow="hover" style="margin-bottom:10px;">
+        <el-card shadow="hover"
+          style="margin-bottom:10px;  background-color: var(--bg-color);color: var(--text-color);">
           <div style="display: flex;flex-direction:row;justify-content: space-between;align-items: center;width: 100%;">
             <div
               style="display: flex;justify-content:center;min-width: 200px;max-width: 600px;width: 49%;margin-bottom: 5px;">
@@ -102,14 +103,18 @@
           </div>
         </el-card>
         <div class="profile-option">
-          <el-card style="min-width: 200px;max-width: 600px;width: 49%;margin-bottom: 5px;" shadow="hover">
+          <el-card
+            style="min-width: 200px;max-width: 600px;width: 49%;margin-bottom: 5px; background-color: var(--bg-color);color: var(--text-color);"
+            shadow="hover background-color: var(--bg-color);color: var(--text-color);">
             <div class="switch-warper">
               <el-text>是否使用全局配置</el-text>
               <el-switch v-model="item.isUseGlobal" inline-prompt active-text="Y" inactive-text="N"
                 @change="store.commit('profile/setProfileProperty', { id: item.id, propertyName: 'isUseGlobal', value: item.isUseGlobal })" />
             </div>
           </el-card>
-          <el-card style="min-width: 200px;max-width: 600px;width: 49%;margin-bottom: 5px;" shadow="hover">
+          <el-card
+            style="min-width: 200px;max-width: 600px;width: 49%;margin-bottom: 5px; background-color: var(--bg-color);color: var(--text-color);"
+            shadow="hover">
             <div style="display: flex;justify-content: center;">
               <el-text>目标平台：</el-text>
               <el-select-v2 v-model="item.target" :options="options" placeholder="暂未选择" style="width:150px;"
@@ -503,6 +508,8 @@ const handleSaveName = (item) => {
   width: 100%;
   height: auto;
   margin-bottom: 20px;
+  background-color: var(--bg-color);
+  color: var(--text-color);
 }
 
 .info-box {
@@ -518,11 +525,24 @@ const handleSaveName = (item) => {
   justify-content: space-between;
 }
 
+.setting-card {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+
+.profile-card {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+
 .switch-card {
   min-width: 200px;
   max-width: 250px;
   width: 49%;
   margin-bottom: 5px;
+  box-shadow: 0 2px 8px var(--border-color);
+  background-color: var(--bg-color);
+  color: var(--text-color);
 }
 
 .switch-warper {
@@ -545,31 +565,32 @@ const handleSaveName = (item) => {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+  background-color: var(--bg-color);
+  color: var(--text-color);
 }
 
 .drag-handle {
   cursor: move;
 }
 
-
 .copy-icon {
   width: 24px;
   height: 24px;
-  color: #646464;
+  color: var(--text-color);
 }
 
 .copy-btn:hover .copy-icon {
-  color: #000000;
+  color: var(--primary-color);
 }
 
 .delete-icon {
   width: 24px;
   height: 24px;
-  color: #dd7171;
+  color: var(--danger-light);
 }
 
 .delete-btn:hover .delete-icon {
-  color: #ff0000;
+  color: var(--danger);
 }
 
 .profile-option {
@@ -602,6 +623,6 @@ const handleSaveName = (item) => {
 
 .ghost {
   opacity: 0.5;
-  background: #c8ebfb;
+  background: var(--primary-light);
 }
 </style>

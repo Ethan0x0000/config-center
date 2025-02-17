@@ -1,9 +1,9 @@
 <template>
-  <el-card shadow="hover">
+  <el-card shadow="hover" style="background-color: var(--bg-color);">
     <template #header>
       <div class="card-header">
         <el-text type="primary" size="large"
-          style="display: flex; justify-content: center;margin-left:32px;">节点列表</el-text>
+          style="display: flex; justify-content: center;margin-left:32px; color: var(--text-color);">节点列表</el-text>
         <el-button class="add-btn" @click="handleAddNode" text style="width: 32px;">
           <Icon icon="mdi:plus" width="18" height="18" />
         </el-button>
@@ -11,14 +11,15 @@
     </template>
     <VueDraggable v-model="nodes" handle=".drag-handle" :animation="150" direction="horizontal" ghostClass="ghost"
       style="display: flex; flex-wrap: wrap;">
-      <el-card v-for="item in nodes" :key="item.id" class="card-item" shadow="never" body-style="padding: 5px;">
+      <el-card v-for="item in nodes" :key="item.id" class="card-item" shadow="never" body-style="padding: 5px;"
+        style="background-color: var(--bg-color);">
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <Icon class="drag-handle" icon="ic:baseline-drag-indicator" width="21" height="21" />
           <el-button @click="handleEditNode(item)" text style="width: 32px;" circle>
             <Icon icon="iconamoon:edit-duotone" width="18" height="18" />
           </el-button>
           <el-text :type="isNodeSelected(item.id) ? 'success' : ''" @click="toggleUse(item.id)"
-            style="cursor: pointer;">{{ item.name }}</el-text>
+            style="cursor: pointer; color: var(--text-color);">{{ item.name }}</el-text>
           <el-button class="delete-btn" @click="handleDeleteNode(item)" style="width: 32px;" color="transparent" text
             circle>
             <Icon icon="typcn:delete" width="24" height="24" class="delete-icon" />
@@ -28,14 +29,14 @@
     </VueDraggable>
   </el-card>
   <el-dialog :title="dialogState === DialogState.ADD ? '添加节点' : '编辑节点'" v-model="dialogVisible" width="30%" align-center
-    :before-close="handleDialogClose">
+    :before-close="handleDialogClose" style="background-color: var(--bg-color);">
     <div style="display: flex; flex-direction: row;align-content: center;">
-      <el-text style="width:50px">名称：</el-text>
+      <el-text style="width:50px; color: var(--text-color);">名称：</el-text>
       <el-input class="node-name" v-model="editItem.name"></el-input>
     </div>
     <div v-if="editItem.hasOwnProperty('link')"
       style="display: flex; flex-direction: row;align-content: center;margin-top:10px;">
-      <el-text style="width:50px">链接：</el-text>
+      <el-text style="width:50px; color: var(--text-color);">链接：</el-text>
       <el-input class="node-link" v-model="editItem.link"></el-input>
     </div>
     <template #footer>
@@ -150,12 +151,16 @@ const handleDeleteNode = (item) => {
   display: flex;
   justify-content: center;
   align-items: center;
+  background-color: var(--bg-color);
+  color: var(--text-color);
 }
 
 .card-item {
   width: auto;
   margin: 10px;
   border-radius: 20px;
+  background-color: var(--bg-color);
+  border: 1px solid var(--border-color);
 }
 
 .drag-handle {
@@ -174,15 +179,45 @@ const handleDeleteNode = (item) => {
 }
 
 .delete-icon {
-  color: #ffa5a5;
+  color: var(--danger-light);
 }
 
 .delete-btn:hover .delete-icon {
-  color: #ff0000;
+  color: var(--danger);
 }
 
 .ghost {
   opacity: 0.5;
-  background: #c8ebfb;
+  background: var(--primary-light);
+}
+
+.el-card__body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+
+.el-card {
+  background-color: var(--bg-color);
+  border: 1px solid var(--border-color);
+}
+
+.el-dialog {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+
+.el-dialog__header {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+
+.el-dialog__body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+
+.el-dialog__footer {
+  background-color: var(--bg-color);
+  color: var(--text-color);
 }
 </style>
