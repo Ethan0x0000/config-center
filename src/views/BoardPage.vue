@@ -3,7 +3,7 @@
     <!-- Header Section with Backend URL -->
     <el-row class="mb-4">
       <el-col :span="24">
-        <el-card shadow="hover" style="background-color: var(--bg-color);">
+        <el-card shadow="hover" class="url-card">
           <el-input v-model="backendUrl" size="large" placeholder="请输入后端地址" :prefix-icon="Connection">
             <template #prepend>后端地址</template>
           </el-input>
@@ -12,23 +12,22 @@
     </el-row>
 
     <!-- Status Dashboard -->
-    <el-row :gutter="20" class="mb-4">
+    <el-row :gutter="24" class="mb-4">
       <el-col :span="8">
         <el-card shadow="hover" class="status-card">
           <template #header>
             <div class="card-header">
-              <span>
-                内核状态
+              <div class="header-title">
+                <span>内核状态</span>
                 <el-button type="default" :icon="Refresh" circle size="small" @click="refreshStatus"
-                  :loading="refreshState"
-                  style="border: none;   background-color: var(--bg-color); color: var(--text-color);" />
-              </span>
-              <el-tag :type="kernelStatus.type === 'success' ? 'success' : 'danger'" size="small">
+                  :loading="refreshState" class="refresh-btn" />
+              </div>
+              <el-tag :type="kernelStatus.type === 'success' ? 'success' : 'danger'" size="small" effect="dark">
                 {{ kernelStatus.text }}
               </el-tag>
             </div>
           </template>
-          <el-descriptions :column="1" border>
+          <el-descriptions :column="1" border class="status-descriptions">
             <el-descriptions-item label="当前版本">
               {{ kernelVersionInfo.current }}
             </el-descriptions-item>
@@ -36,7 +35,7 @@
               <div class="core-version-info">
                 <span>{{ kernelVersionInfo.latest }}</span>
                 <el-button v-if="kernelVersionInfo.current !== kernelVersionInfo.latest" type="warning" size="small"
-                  class="ml-2" @click="upgradeKernel" :loading="upgradeState" plain>
+                  class="upgrade-btn" @click="upgradeKernel" :loading="upgradeState" plain>
                   <el-icon class="mr-1">
                     <ArrowUpBold />
                   </el-icon>
@@ -56,19 +55,19 @@
             </div>
           </template>
 
-          <el-row :gutter="20">
-            <el-col :span="6">
+          <el-row :gutter="24">
+            <el-col :span="8">
               <el-button type="primary" :icon="VideoPlay" @click="restartKernel" :loading="restartState"
                 class="control-btn">
                 启动内核
               </el-button>
             </el-col>
-            <el-col :span="6">
+            <el-col :span="8">
               <el-button type="danger" :icon="VideoPause" @click="stopKernel" :loading="stopState" class="control-btn">
                 停止内核
               </el-button>
             </el-col>
-            <el-col :span="6">
+            <el-col :span="8">
               <el-button type="info" :icon="Document" @click="showServiceLogs" class="control-btn">
                 查看日志
               </el-button>
@@ -87,7 +86,7 @@
               <span>其他功能</span>
             </div>
           </template>
-          <el-space wrap>
+          <el-space wrap size="large">
             <el-button type="primary" :icon="RefreshRight" @click="reloadRuleSets" :loading="reloadState">
               重载规则集列表
             </el-button>
@@ -100,12 +99,11 @@
     </el-row>
 
     <!-- Logs Drawer -->
-    <el-drawer v-model="logDrawerVisible" title="服务日志" size="50%" :destroy-on-close="true"
-      style="background-color: var(--bg-color);">
+    <el-drawer v-model="logDrawerVisible" title="服务日志" size="50%" :destroy-on-close="true" class="log-drawer">
       <template #header>
         <div class="drawer-header">
           <span>服务日志</span>
-          <el-button type="primary" :icon="Download" size="small" @click="downloadLogs">
+          <el-button type="primary" :icon="Download" size="small" @click="downloadLogs" class="download-btn">
             导出日志
           </el-button>
         </div>
@@ -294,35 +292,95 @@ const clearCache = async () => {
 
 <style scoped>
 .board-container {
-  padding: 20px;
+  padding: 24px;
   background-color: var(--bg-color);
   color: var(--text-color);
+  min-height: 100vh;
 }
 
 .mb-4 {
-  margin-bottom: 16px;
-  background-color: var(--bg-color);
-  color: var(--text-color);
+  margin-bottom: 24px;
 }
 
-.ml-2 {
-  margin-left: 8px;
+.url-card,
+.status-card,
+.control-card,
+.util-card {
+  border-radius: 8px;
+  transition: all 0.3s ease;
   background-color: var(--bg-color);
-  color: var(--text-color);
+  border: 1px solid var(--border-color);
 }
 
-.mr-1 {
-  margin-right: 4px;
-  background-color: var(--bg-color);
-  color: var(--text-color);
+.url-card:hover,
+.status-card:hover,
+.control-card:hover,
+.util-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: var(--bg-color);
+  padding: 12px 0;
+}
+
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.refresh-btn {
+  border: none;
+  background-color: transparent;
   color: var(--text-color);
+  padding: 4px;
+}
+
+.status-descriptions {
+  margin-top: 16px;
+}
+
+.core-version-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.upgrade-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+}
+
+.control-btn {
+  width: 100%;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.control-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.util-card .el-space {
+  width: 100%;
+  justify-content: center;
+}
+
+.log-drawer {
+  background-color: var(--bg-color);
 }
 
 .drawer-header {
@@ -330,35 +388,36 @@ const clearCache = async () => {
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  background-color: var(--bg-color);
-  color: var(--text-color);
+  padding: 16px;
 }
 
-.status-card,
-.control-card,
-.util-card {
-  height: 100%;
-  background-color: var(--bg-color);
-  border: 1px solid var(--border-color);
-}
-
-.control-btn {
-  width: 100%;
+.download-btn {
+  margin-left: 16px;
 }
 
 .log-content {
-  padding: 16px;
+  padding: 20px;
   background-color: var(--bg-color);
   color: var(--text-color);
-  border-radius: 4px;
-  font-family: monospace;
+  border-radius: 6px;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  line-height: 1.5;
   white-space: pre-wrap;
   word-wrap: break-word;
 }
 
-.core-version-info {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+@media (max-width: 768px) {
+  .board-container {
+    padding: 16px;
+  }
+
+  .el-col {
+    margin-bottom: 16px;
+  }
+
+  .control-btn {
+    margin-bottom: 12px;
+  }
 }
 </style>

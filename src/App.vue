@@ -155,64 +155,39 @@ body,
   flex-direction: row;
   height: calc(100% - 60px);
   overflow: hidden;
+  position: relative;
 }
 
 .aside {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
   min-width: 150px;
-  width: 15%;
-  box-shadow: 0 5px 5px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  background-color: var(--bg-color);
 }
 
 .content {
   flex: 1;
   position: relative;
-  border-right: 1px solid #e0e0e0;
-  border-bottom: 1px solid #e0e0e0;
-  margin-left: 0;
-  position: relative;
-}
-
-.content::before {
-  content: '';
-  position: absolute;
-  left: calc(v-bind('store.state.user.asideWidth + "px"') - 1px);
-  top: 0;
-  bottom: 0;
-  width: 1px;
-  transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.aside-slide-enter-to~.content::before,
-.aside-slide-leave-from~.content::before {
-  left: calc(v-bind('store.state.user.asideWidth + "px"') - 1px);
-}
-
-.scrollbar {
+  border-right: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+  margin-left: v-bind('store.state.user.asideOpen ? store.state.user.asideWidth + "px" : "0"');
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   width: 100%;
-}
-
-.main {
-  padding: 20px;
 }
 
 .aside-slide-enter-active,
 .aside-slide-leave-active {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   will-change: transform, opacity;
-
-  &~.content::before {
-    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
 }
 
 .aside-slide-enter-from,
 .aside-slide-leave-to {
   transform: translateX(-100%);
   opacity: 0;
-}
-
-.aside-slide-enter-to~.content,
-.aside-slide-leave-from~.content {
-  margin-left: var(--aside-width);
 }
 </style>
