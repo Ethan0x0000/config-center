@@ -105,7 +105,7 @@
         <div class="profile-option">
           <el-card
             style="min-width: 200px;max-width: 600px;width: 49%;margin-bottom: 5px; background-color: var(--bg-color);color: var(--text-color);"
-            shadow="hover background-color: var(--bg-color);color: var(--text-color);">
+            shadow="hover">
             <div class="switch-warper">
               <el-text>是否使用全局配置</el-text>
               <el-switch v-model="item.isUseGlobal" inline-prompt active-text="Y" inactive-text="N"
@@ -353,8 +353,9 @@ const generateConfig = async (id, nodeIDs) => {
   generateState[id] = true;
   try {
     // 检测 profile.nodes 数组是否为空或者数组元素中的 url 属性是否全为空
-    if (nodeIDs.length === 0) {
-      ElMessage.warning('节点列表不能为空');
+    const hasValidSubs = store.state.profile.subs.some(sub => sub.usedNodes.length > 0 && sub.isGroup);
+    if (nodeIDs.length === 0 && !hasValidSubs) {
+      ElMessage.warning('节点列表和订阅节点均为空，无法生成配置');
       throw new Error('终止生成配置');
     }
     await store.dispatch('profile/generateConfig', id);
