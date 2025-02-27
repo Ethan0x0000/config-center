@@ -1,5 +1,5 @@
 <template>
-  <el-card shadow="hover" style="width: 100%; margin-top: 20px; background-color: var(--bg-color);">
+  <el-card shadow="hover" style="width: 100%; margin-top: 20px; background-color: var(--bg-color);border-radius: 8px;">
     <template #header>
       <div class="card-header" style="display: flex; justify-content: center;">
         <el-text type="primary" size="large">订阅管理</el-text>
@@ -58,6 +58,7 @@
         <el-checkbox v-model="editSub.isEnhanced" label="增强订阅" size="large" />
       </el-tooltip>
       <el-checkbox v-model="editSub.isConvert" label="启用订阅转换" size="large" />
+      <el-checkbox v-model="selectAll" label="全选" size="large" @change="handleSelectAll" />
     </div>
     <el-input v-model="editSub.name" placeholder="请输入订阅名称" size="large" style="margin-top: 10px;" />
     <el-input v-model="editSub.url" placeholder="请输入订阅地址或BASE64信息" size="large" style="margin-top: 10px;" clearable>
@@ -99,6 +100,16 @@ import { Icon } from '@iconify/vue';
 import axios from 'axios';
 import { v4 as uuidV4 } from 'uuid';
 import { ElMessage, ElMessageBox } from 'element-plus';
+const selectAll = ref(false);
+
+const handleSelectAll = (val) => {
+  if (val) {
+    editSub.value.usedNodes = editSub.value.subNodes.map((_, index) => index);
+  } else {
+    editSub.value.usedNodes = [];
+  }
+  highlightSaveButton.value = 'primary';
+};
 
 const editDialogVisible = ref(false);
 const dialogState = reactive({
@@ -215,6 +226,31 @@ const handleSaveEdit = () => {
     if (editSub.value.url && !isValidUrl(editSub.value.url) && !isBase64(editSub.value.url)) {
       ElMessage.error('订阅地址格式不正确');
       return;
+    }
+
+    // 处理节点删除逻辑
+    if (!editSub.value.isGroup) {
+      let nodes = store.state.profile.nodeList;
+      // 找出当前订阅中的所有节点
+      const currentSubNodes = editSub.value.subNodes.map((node, index) => ({
+        index,
+        content: node.content
+      }));
+      
+      // 找出需要删除的节点
+      const nodesToDelete = nodes.filter(node => {
+        const matchingSubNode = currentSubNodes.find(subNode => 
+          JSON.stringify(subNode.content) === JSON.stringify(node.content)
+        );
+        return matchingSubNode && !editSub.value.usedNodes.includes(matchingSubNode.index);
+      });
+
+      // 从节点列表和配置文件中删除节点
+      if (nodesToDelete.length > 0) {
+        const nodeIdsToDelete = nodesToDelete.map(node => node.id);
+        store.commit('profile/removeNodeIDs', { profileID: currentProfileID.value, nodeIDs: nodeIdsToDelete });
+        store.commit('profile/setNodeList', nodes.filter(node => !nodeIdsToDelete.includes(node.id)));
+      }
     }
 
     // 保存有效订阅

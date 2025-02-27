@@ -1,10 +1,6 @@
 export const Outbounds = [
   {
     type: 'direct',
-    tag: 'direct'
-  },
-  {
-    type: 'direct',
     tag: '🇨🇳 Direct'
   },
   {
@@ -13,6 +9,6 @@ export const Outbounds = [
   },
   {
     type: 'block',
-    tag: 'block'
+    tag: '🚫 Block'
   }
 ]

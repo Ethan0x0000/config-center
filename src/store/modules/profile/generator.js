@@ -109,7 +109,7 @@ async function generateOutbounds(nodeList, subs, nodeIDs, rootState) {
  * @param {boolean} isTogShut - 是否中断现有连接
  * @returns {Array} - 生成的出站组配置列表
  */
-function generateOutboundGroups(outbounds, subs, rules, blocks, udRules, isTogShut) {
+function generateOutboundGroups(outbounds, subs, rules, blocks, udRules, outGroups, isTogShut) {
   // 过滤并提取订阅组名称
   let subGroupNames = subs.filter(sub => sub.isGroup && sub.usedNodes.length > 0).map(item => item.name);
 
@@ -140,8 +140,8 @@ function generateOutboundGroups(outbounds, subs, rules, blocks, udRules, isTogSh
 
   // 构建代理组配置
   let proxyGroup = {
-    tag: 'Proxy',
-    outbounds: ['⚡️ Auto'].concat(outboundNames, ['🇨🇳 Direct']),
+    tag: '📦 Proxy',
+    outbounds: ['⚡️ Auto'].concat(outGroups.map(group => group.name), outboundNames, ['🇨🇳 Direct']),
     interrupt_exist_connections: isTogShut,
     type: 'selector'
   };
@@ -161,7 +161,7 @@ function generateOutboundGroups(outbounds, subs, rules, blocks, udRules, isTogSh
   // 构建最终组配置
   let finalGroup = {
     tag: '🏁 Final',
-    outbounds: ['Proxy', '⚡️ Auto', '🇨🇳 Direct'],
+    outbounds: ['📦 Proxy', '⚡️ Auto'].concat(outGroups.map(group => group.name), ['🇨🇳 Direct']),
     interrupt_exist_connections: isTogShut,
     type: 'selector'
   };
@@ -169,8 +169,8 @@ function generateOutboundGroups(outbounds, subs, rules, blocks, udRules, isTogSh
   // 构建规则组配置
   let ruleGroups = rules.map(rule => {
     return {
-      tag: processString(rule.name),
-      outbounds: ['Proxy'].concat(outboundNames, ['🇨🇳 Direct']),
+      tag: rule.groupName === '自动生成' ? processString(rule.name) : rule.groupName,
+      outbounds: ['📦 Proxy'].concat(outGroups.map(group => group.name), outboundNames, ['🇨🇳 Direct']),
       interrupt_exist_connections: isTogShut,
       type: 'selector'
     }
@@ -181,8 +181,8 @@ function generateOutboundGroups(outbounds, subs, rules, blocks, udRules, isTogSh
   // 构建阻断组配置
   let blockGroups = blocks.map(rule => {
     return {
-      tag: processString(rule.name),
-      outbounds: ['block', '🇨🇳 Direct'],
+      tag: rule.groupName ? rule.groupName : processString(rule.name),
+      outbounds: ['🚫 Block', '🇨🇳 Direct'],
       interrupt_exist_connections: isTogShut,
       type: 'selector'
     }
@@ -196,7 +196,7 @@ function generateOutboundGroups(outbounds, subs, rules, blocks, udRules, isTogSh
   }).map(rule => {
     return {
       tag: rule.name,
-      outbounds: ['Proxy'].concat(outboundNames, ['🇨🇳 Direct', 'block']),
+      outbounds: ['📦 Proxy'].concat(outGroups.map(group => group.name), outboundNames, ['🇨🇳 Direct', '🚫 Block']),
       interrupt_exist_connections: isTogShut,
       type: 'selector'
     }
@@ -208,9 +208,33 @@ function generateOutboundGroups(outbounds, subs, rules, blocks, udRules, isTogSh
   }).map(rule => {
     return {
       tag: rule.name,
-      outbounds: ['Proxy'].concat(outboundNames, ['🇨🇳 Direct', 'block']),
+      outbounds: ['📦 Proxy'].concat(outGroups.map(group => group.name), outboundNames, ['🇨🇳 Direct', '🚫 Block']),
       interrupt_exist_connections: isTogShut,
       type: 'selector'
+    }
+  });
+
+  // 构建自定义出站分组配置
+  let customOutGroups = outGroups.map(group => {
+    if (group.type === 'selector') {
+      return {
+        tag: group.name,
+        outbounds: group.nodes,
+        interrupt_exist_connections: isTogShut,
+        type: 'selector'
+      }
+    }
+    else {
+      return {
+        tag: group.name,
+        outbounds: group.nodes,
+        type: 'urltest',
+        url: 'https://www.gstatic.com/generate_204',
+        interval: '3m',
+        tolerance: 50,
+        idle_timeout: '30m',
+        interrupt_exist_connections: false
+      }
     }
   });
 
@@ -229,8 +253,14 @@ function generateOutboundGroups(outbounds, subs, rules, blocks, udRules, isTogSh
     groups = groups.concat(nonPriorityUdRuleGroups);
   }
 
-  // 返回最终组配置列表
-  return groups.concat(subGroups, finalGroup);
+  // 去重并返回去重后的组配置列表
+  return groups.concat(subGroups, finalGroup, customOutGroups).reduce((acc, group) => {
+    if (!acc.seen[group.tag]) {
+      acc.seen[group.tag] = true;
+      acc.result.push(group);
+    }
+    return acc;
+  }, { seen: {}, result: [] }).result;
 }
 
 /**
@@ -348,7 +378,7 @@ function modifyDNS(config, profile, isFakeIP) {
         case 'direct':
           filteredObject.server = 'local-dns';
           break;
-        case 'block':
+        case '🚫 Block':
           filteredObject.server = 'block-dns';
           break;
         case 'proxy':
@@ -379,7 +409,7 @@ function modifyDNS(config, profile, isFakeIP) {
         case 'direct':
           filteredObject.server = 'local-dns';
           break;
-        case 'block':
+        case '🚫 Block':
           filteredObject.server = 'block-dns';
           break;
         case 'proxy':
@@ -478,7 +508,7 @@ function modifyRoutes(config, profile) {
     return {
       type: 'remote',
       format: 'binary',
-      download_detour: 'Proxy',
+      download_detour: '📦 Proxy',
       tag: item.name,
       url: item.url,
     }
@@ -489,7 +519,7 @@ function modifyRoutes(config, profile) {
     return {
       type: 'remote',
       format: 'binary',
-      download_detour: 'Proxy',
+      download_detour: '📦 Proxy',
       tag: item.name,
       url: item.url,
     }
@@ -500,7 +530,7 @@ function modifyRoutes(config, profile) {
     return {
       type: 'remote',
       format: 'binary',
-      download_detour: 'Proxy',
+      download_detour: '📦 Proxy',
       tag: item.name,
       url: item.url,
     }
@@ -511,7 +541,7 @@ function modifyRoutes(config, profile) {
 
   // 将用户配置中的代理规则转换为路由规则
   let proxyRules = profile.proxyRules.map(item => {
-    return { rule_set: item.name, outbound: processString(item.name) }
+    return { rule_set: item.name, outbound: item.groupName !== '自动生成' ? item.groupName : processString(item.name) }
   });
 
   // 将用户配置中的直连规则转换为路由规则
@@ -521,7 +551,7 @@ function modifyRoutes(config, profile) {
 
   // 将用户配置中的阻止规则转换为路由规则
   let blockRules = profile.blockRules.map(item => {
-    return { rule_set: item.name, outbound: processString(item.name) }
+    return { rule_set: item.name, outbound: item.groupName !== '自动生成' ? item.groupName : processString(item.name) }
   });
 
   // 初始化优先级和非优先级的用户定义规则数组
@@ -532,7 +562,7 @@ function modifyRoutes(config, profile) {
   if (Array.isArray(profile.udRules) && profile.udRules.length > 0) {
     // 过滤并处理优先级规则，排除阻断规则和内容为空的规则
     priorityUdRules = profile.udRules.filter(item => {
-      return item.isPriority && item.type !== 'block' && item.content;
+      return item.isPriority && item.type !== '🚫 Block' && item.content;
     }).map(item => {
       let ruleObj;
       try {
@@ -550,7 +580,7 @@ function modifyRoutes(config, profile) {
           if (item.isGroup) {
             ruleObj.outbound = item.name;
           } else {
-            ruleObj.outbound = 'Proxy';
+            ruleObj.outbound = '📦 Proxy';
           }
           break;
         default:
@@ -575,14 +605,14 @@ function modifyRoutes(config, profile) {
         case 'direct':
           ruleObj.outbound = 'direct';
           break;
-        case 'block':
-          ruleObj.outbound = 'block';
+        case '🚫 Block':
+          ruleObj.outbound = '🚫 Block';
           break;
         case 'proxy':
           if (item.isGroup) {
             ruleObj.outbound = item.name;
           } else {
-            ruleObj.outbound = 'Proxy';
+            ruleObj.outbound = '📦 Proxy';
           }
           break;
         default:
@@ -636,7 +666,7 @@ export async function generateFullConfig(subs, nodeList, profile, global, rootSt
 
     // 出站配置
     let outbounds = await generateOutbounds(nodeList, subs, profile.nodeIDs, rootState);
-    let outboundGroups = generateOutboundGroups(outbounds, subs, profile.proxyRules, profile.blockRules, profile.udRules, profile.isUseGlobal ? global.isTogShut : profile.isTogShut);
+    let outboundGroups = generateOutboundGroups(outbounds, subs, profile.proxyRules, profile.blockRules, profile.udRules, profile.outGroups, profile.isUseGlobal ? global.isTogShut : profile.isTogShut);
     config.outbounds = config.outbounds.concat(outbounds, outboundGroups);
 
     // 路由配置
@@ -651,8 +681,3 @@ export async function generateFullConfig(subs, nodeList, profile, global, rootSt
   }
 }
 
-// 保留原来的modifyConfig函数用于其他可能的用途
-export async function modifyConfig(config, subs, nodeList, profile, global, rootState) {
-  // 调用新的generateFullConfig函数
-  return await generateFullConfig(subs, nodeList, profile, global, rootState);
-}

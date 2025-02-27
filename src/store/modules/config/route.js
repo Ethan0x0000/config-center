@@ -36,17 +36,7 @@ export const Route = {
         'ac.cn',
         'com.cn',
         'net.cn',
-        'org.cn',
-        'xn--fiqz9s',
-        'xn--fiqs8s',
-        'xn--fiq228c',
-      ],
-      outbound: 'direct'
-    },
-    {
-      domain_keyword: [
-        '中国',
-        '中國'
+        'org.cn'
       ],
       outbound: 'direct'
     },

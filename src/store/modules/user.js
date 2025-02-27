@@ -13,7 +13,8 @@ const user = {
     },
     kernelVersionInfo: {
       current: '',
-      latest: ''
+      latest: '',
+      latest_b: ''
     }
   },
   mutations: {

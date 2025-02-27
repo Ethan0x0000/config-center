@@ -1,9 +1,11 @@
 <template>
-  <div>
-    <NodeManage />
-  </div>
-  <div>
-    <SubNode />
+  <div class="node-page">
+    <div>
+      <NodeManage />
+    </div>
+    <div>
+      <SubNode />
+    </div>
   </div>
 </template>
 
@@ -22,3 +24,12 @@ onMounted(() => {
 })
 
 </script>
+
+<style scoped>
+.node-page {
+  display: flex;
+  flex-direction: column;
+  margin: 20px;
+  justify-content: space-between;
+}
+</style>

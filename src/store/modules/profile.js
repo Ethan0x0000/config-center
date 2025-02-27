@@ -19,80 +19,7 @@ const profile = {
     subs: [],
     nodeList: [],
     profiles: [
-      {
-        id: uuidV4(),
-        name: '新配置',
-        isUseGlobal: true,
-        isLog: true,
-        isFakeIP: true,
-        isOverDst: true,
-        isTogShut: false,
-        target: 'pc',
-        dns: {
-          local: '223.5.5.5',
-          remote: '8.8.8.8',
-          resolver: '223.5.5.5',
-        },
-        nodeIDs: [],
-        proxyRules: [
-          {
-            id: uuidV4(),
-            name: 'geosite-bing',
-            url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/bing.srs'
-          },
-          {
-            id: uuidV4(),
-            name: 'geoip-telegram',
-            url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geoip/telegram.srs'
-          },
-          {
-            id: uuidV4(),
-            name: 'geosite-telegram',
-            url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/telegram.srs'
-          },
-          {
-            id: uuidV4(),
-            name: 'geosite-youtube',
-            url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/youtube.srs'
-          },
-          {
-            id: uuidV4(),
-            name: 'geosite-google',
-            url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/google.srs'
-          }
-        ],
-        directRules: [
-          {
-            id: uuidV4(),
-            name: 'geoip-cn',
-            url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geoip/cn.srs'
-          },
-          {
-            id: uuidV4(),
-            name: 'geosite-cn',
-            url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/cn.srs'
-          }
-        ],
-        blockRules: [
-          {
-            id: uuidV4(),
-            name: 'geosite-category-ads-all',
-            url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/category-ads-all.srs'
-          }
-        ],
-        udRules: [
-          {
-            id: uuidV4(),
-            name: '云手机',
-            type: 'direct',
-            isGroup: false,
-            isUse: true,
-            isPriority: true,
-            content: '{\n  "domain_suffix": [\n    ".mogume.com",\n    ".dutils.com"\n  ]\n}\n'
-          }
-        ],
-        value: '',
-      }
+      createNewItem(ARRAY_NAMES.PROFILES)
     ],
     profilesMap: {},
   },
@@ -158,66 +85,7 @@ const profile = {
       state.profiles = profiles;
     },
     addProfile(state) {
-      const newProfile = {
-        id: uuidV4(),
-        name: '新配置',
-        isUseGlobal: true,
-        isLog: true,
-        isFakeIP: true,
-        isOverDst: true,
-        isTogShut: false,
-        target: 'pc',
-        dns: {
-          local: '223.5.5.5',
-          remote: '8.8.8.8',
-          resolver: '223.5.5.5',
-        },
-        nodeIDs: [],
-        proxyRules: [
-          {
-            id: uuidV4(),
-            name: 'geosite-bing',
-            url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/bing.srs'
-          },
-          {
-            id: uuidV4(),
-            name: 'geoip-telegram',
-            url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geoip/telegram.srs'
-          },
-          {
-            id: uuidV4(),
-            name: 'geosite-telegram',
-            url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/telegram.srs'
-          },
-          {
-            id: uuidV4(),
-            name: 'geosite-youtube',
-            url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/youtube.srs'
-          },
-          {
-            id: uuidV4(),
-            name: 'geosite-google',
-            url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/google.srs'
-          }
-        ],
-        directRules: [
-          {
-            id: uuidV4(),
-            name: 'geoip-cn',
-            url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geoip/cn.srs'
-          },
-          {
-            id: uuidV4(),
-            name: 'geosite-cn',
-            url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/cn.srs'
-          }
-        ],
-        blockRules: [
-        ],
-        udRules: [
-        ],
-        value: '',
-      };
+      const newProfile = createNewItem(ARRAY_NAMES.PROFILES);
       state.profiles.push(newProfile);
     },
     deleteProfile(state, id) {

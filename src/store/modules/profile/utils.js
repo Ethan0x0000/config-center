@@ -19,5 +19,5 @@ export function processString(str) {
   // 去掉开头的 geosite- 或 geoip-
   // 将字符串首字母大写
   result = result.charAt(0).toUpperCase() + result.slice(1);
-  return result.replace('ai', 'AI');
+  return result;
 }

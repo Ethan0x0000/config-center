@@ -9,30 +9,46 @@
           <span>面板</span>
         </template>
       </el-menu-item>
-      <el-menu-item index="/setting">
+      <el-sub-menu index="/setting">
         <template #title>
           <el-icon>
             <Icon icon="uil:setting" style="position: relative;top: -1px;" />
           </el-icon>
           <span>配置</span>
         </template>
-      </el-menu-item>
-      <el-menu-item index="/node">
-        <template #title>
-          <el-icon>
-            <Icon icon="ri:node-tree" style="position: relative;top: -1px;" />
-          </el-icon>
-          <span>节点</span>
-        </template>
-      </el-menu-item>
-      <el-menu-item index="/rule">
-        <template #title>
-          <el-icon>
-            <Icon icon="ic:baseline-list-alt" style="position: relative;top: -1px;" />
-          </el-icon>
-          <span>规则</span>
-        </template>
-      </el-menu-item>
+        <el-menu-item index="/setting/manage">
+          <template #title>
+            <el-icon>
+              <Icon icon="material-symbols:settings" style="position: relative;top: -1px;" />
+            </el-icon>
+            <span>管理</span>
+          </template>
+        </el-menu-item>
+        <el-menu-item index="/node">
+          <template #title>
+            <el-icon>
+              <Icon icon="ri:node-tree" style="position: relative;top: -1px;" />
+            </el-icon>
+            <span>节点</span>
+          </template>
+        </el-menu-item>
+        <el-menu-item index="/group">
+          <template #title>
+            <el-icon>
+              <Icon icon="heroicons-outline:folder-open" width="24" height="24" />
+            </el-icon>
+            <span>分组</span>
+          </template>
+        </el-menu-item>
+        <el-menu-item index="/rule">
+          <template #title>
+            <el-icon>
+              <Icon icon="ic:baseline-list-alt" style="position: relative;top: -1px;" />
+            </el-icon>
+            <span>规则</span>
+          </template>
+        </el-menu-item>
+      </el-sub-menu>
     </el-menu>
   </el-scrollbar>
 </template>
@@ -89,7 +105,8 @@ onMounted(() => {
   color: var(--el-menu-active-color);
 }
 
-:deep(.el-menu-item.is-active)::before {
+:deep(.el-menu > .el-menu-item.is-active)::before,
+:deep(.el-sub-menu.is-active > .el-sub-menu__title)::before {
   content: '';
   position: absolute;
   left: 0;
@@ -103,7 +120,8 @@ onMounted(() => {
   transform: scaleX(1);
 }
 
-:deep(.el-menu-item:not(.is-active))::before {
+:deep(.el-menu > .el-menu-item:not(.is-active))::before,
+:deep(.el-sub-menu:not(.is-active) > .el-sub-menu__title)::before {
   content: '';
   position: absolute;
   left: 0;
@@ -115,5 +133,9 @@ onMounted(() => {
   transform-origin: left;
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   transform: scaleX(0);
+}
+
+:deep(.el-sub-menu .el-menu-item.is-active)::before {
+  display: none;
 }
 </style>

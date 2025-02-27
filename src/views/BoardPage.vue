@@ -28,18 +28,37 @@
             </div>
           </template>
           <el-descriptions :column="1" border class="status-descriptions">
-            <el-descriptions-item label="当前版本">
+            <el-descriptions-item label="当前运行版本">
               {{ kernelVersionInfo.current }}
             </el-descriptions-item>
-            <el-descriptions-item label="最新版本">
+            <el-descriptions-item label="最新稳定版本">
               <div class="core-version-info">
                 <span>{{ kernelVersionInfo.latest }}</span>
-                <el-button v-if="kernelVersionInfo.current !== kernelVersionInfo.latest" type="warning" size="small"
-                  class="upgrade-btn" @click="upgradeKernel" :loading="upgradeState" plain>
+                <el-button v-if="kernelVersionInfo.current < kernelVersionInfo.latest" size="small" class="upgrade-btn"
+                  @click="upgradeKernel" :loading="upgradeState" plain>
                   <el-icon class="mr-1">
                     <ArrowUpBold />
                   </el-icon>
                   升级
+                </el-button>
+                <el-button v-if="kernelVersionInfo.current > kernelVersionInfo.latest" size="small" class="upgrade-btn"
+                  @click="upgradeKernel" :loading="upgradeState" plain>
+                  <el-icon class="mr-1">
+                    <Switch />
+                  </el-icon>
+                  切换
+                </el-button>
+              </div>
+            </el-descriptions-item>
+            <el-descriptions-item label="最新预览版本">
+              <div class="core-version-info">
+                <span>{{ kernelVersionInfo.latest_b }}</span>
+                <el-button v-if="kernelVersionInfo.current < kernelVersionInfo.latest_b" size="small"
+                  class="upgrade-btn" @click="upgradeBetaKernel" :loading="upgradeBetaState" plain>
+                  <el-icon class="mr-1">
+                    <Switch />
+                  </el-icon>
+                  切换
                 </el-button>
               </div>
             </el-descriptions-item>
@@ -128,6 +147,7 @@ import {
   Download,
   Document,
   Delete,
+  Switch,
   VideoPause,
   VideoPlay
 } from '@element-plus/icons-vue';
@@ -147,6 +167,7 @@ const kernelVersionInfo = computed(() => store.state.user.kernelVersionInfo);
 const restartState = ref(false);
 const stopState = ref(false);
 const upgradeState = ref(false);
+const upgradeBetaState = ref(false);
 const reloadState = ref(false);
 const refreshState = ref(false);
 const clearingState = ref(false);
@@ -195,7 +216,7 @@ const stopKernel = async () => {
 
 const upgradeKernel = async () => {
   if (kernelVersionInfo.value.current === kernelVersionInfo.value.latest) {
-    ElMessage.warning('当前内核版本已是最新版本');
+    ElMessage.warning('当前内核版本已是最新稳定版本');
     return;
   }
   upgradeState.value = true;
@@ -212,6 +233,27 @@ const upgradeKernel = async () => {
     ElMessage.error('升级内核失败');
   }
   upgradeState.value = false;
+};
+
+const upgradeBetaKernel = async () => {
+  if (kernelVersionInfo.value.current === kernelVersionInfo.value.latest_b) {
+    ElMessage.warning('当前内核版本已是最新预览版本');
+    return;
+  }
+  upgradeBetaState.value = true;
+  try {
+    const res = await axios.post(`http://${backendUrl.value}/upgrade-kernel-beta`);
+    if (res.status === 200) {
+      ElMessage.success('切换预览版内核成功');
+      await refreshStatus();
+    } else {
+      ElMessage.error(`切换预览版内核失败: ${res.data}`);
+    }
+  } catch (error) {
+    console.error(error);
+    ElMessage.error('切换预览版内核失败');
+  }
+  upgradeBetaState.value = false;
 };
 
 const refreshStatus = async () => {
@@ -295,11 +337,12 @@ const clearCache = async () => {
   padding: 24px;
   background-color: var(--bg-color);
   color: var(--text-color);
-  min-height: 100vh;
+  height: auto;
+  overflow-y: auto;
 }
 
 .mb-4 {
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 
 .url-card,

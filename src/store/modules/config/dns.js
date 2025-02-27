@@ -48,10 +48,7 @@ export const DNS = {
           'ac.cn',
           'com.cn',
           'net.cn',
-          'org.cn',
-          'xn--fiqz9s',
-          'xn--fiqs8s',
-          'xn--fiq228c'
+          'org.cn'
         ],
         server: 'local-dns'
       },
@@ -131,17 +128,7 @@ export const DNS = {
           'ac.cn',
           'com.cn',
           'net.cn',
-          'org.cn',
-          'xn--fiqz9s',
-          'xn--fiqs8s',
-          'xn--fiq228c'
-        ],
-        server: 'local-dns'
-      },
-      {
-        domain_keyword: [
-          '中国',
-          '中國'
+          'org.cn'
         ],
         server: 'local-dns'
       },
@@ -154,7 +141,7 @@ export const DNS = {
         server: 'local-dns'
       }
     ],
-    strategy: 'ipv4_only',
+    strategy: 'prefer_ipv4',
     final: 'remote-dns'
   }
 }

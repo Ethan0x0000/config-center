@@ -54,6 +54,7 @@ onMounted(() => {
 .warper {
   display: flex;
   flex-wrap: wrap;
+  margin: 20px;
   justify-content: space-between;
   background-color: var(--bg-color);
   color: var(--text-color);
@@ -65,6 +66,7 @@ onMounted(() => {
   margin-bottom: 20px;
   background-color: var(--bg-color);
   border: 1px solid var(--border-color);
+  border-radius: 8px;
   color: var(--text-color);
 }
 </style>

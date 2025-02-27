@@ -1,12 +1,14 @@
 <template>
-  <el-card shadow="hover" style="background-color: var(--bg-color);">
+  <el-card shadow="hover" style="background-color: var(--bg-color); border-radius: 8px;">
     <template #header>
       <div class="card-header">
         <el-text type="primary" size="large"
           style="display: flex; justify-content: center;margin-left:32px; color: var(--text-color);">节点列表</el-text>
-        <el-button class="add-btn" @click="handleAddNode" text style="width: 32px;">
-          <Icon icon="mdi:plus" width="18" height="18" />
-        </el-button>
+        <div style="display: flex; gap: 10px;">
+          <el-button class="add-btn" @click="handleAddNode" text style="width: 32px;">
+            <Icon icon="mdi:plus" width="18" height="18" />
+          </el-button>
+        </div>
       </div>
     </template>
     <VueDraggable v-model="nodes" handle=".drag-handle" :animation="150" direction="horizontal" ghostClass="ghost"
@@ -19,7 +21,7 @@
             <Icon icon="iconamoon:edit-duotone" width="18" height="18" />
           </el-button>
           <el-text :type="isNodeSelected(item.id) ? 'success' : ''" @click="toggleUse(item.id)"
-            style="cursor: pointer; color: var(--text-color);">{{ item.name }}</el-text>
+            style="cursor: pointer;">{{ item.name }}</el-text>
           <el-button class="delete-btn" @click="handleDeleteNode(item)" style="width: 32px;" color="transparent" text
             circle>
             <Icon icon="typcn:delete" width="24" height="24" class="delete-icon" />
@@ -73,14 +75,14 @@ const nodes = computed({
 
 const editItem = ref({});
 
+
 const handleAddNode = () => {
   dialogState.value = DialogState.ADD;
-  store.commit('profile/addNodeList');
-  store.commit('profile/addNodeID', {
-    profileID: currentProfileID.value,
-    nodeID: store.state.profile.nodeList[store.state.profile.nodeList.length - 1].id
-  });
-  editItem.value = { ...store.state.profile.nodeList[store.state.profile.nodeList.length - 1] };
+  editItem.value = {
+    id: crypto.randomUUID(),
+    name: '',
+    link: ''
+  };
 };
 
 const handleEditNode = (item) => {
@@ -89,9 +91,6 @@ const handleEditNode = (item) => {
 };
 
 const handleDialogClose = () => {
-  if (dialogState.value === DialogState.ADD) {
-    store.commit('profile/deleteNodeList', editItem.value.id);
-  }
   dialogState.value = DialogState.CLOSED;
   editItem.value = {};
 };
@@ -121,24 +120,35 @@ const timeout = (ms, promise) => {
 const isLoading = ref(false);
 const handleSave = async () => {
   isLoading.value = true;
-  if (editItem.value.link) {
-    try {
+  try {
+    if (editItem.value.link) {
       const url = 'https://url.v1.mk/sub?target=singbox&url=' + encodeURIComponent(editItem.value.link) + '&insert=false&emoji=true&list=true&xudp=true&udp=true&tfo=false&expand=false&scv=true&fdn=false&singbox.ipv6=1';
       const response = await timeout(10000, axios.get(url));
       editItem.value.content = response.data.outbounds[0];
-      store.commit('profile/setNode', editItem.value);
-    } catch (error) {
-      if (error.message === 'Operation timed out') {
-        ElMessage.error('请求超时');
-      } else {
-        console.log(error);
-      }
     }
-  } else {
-    store.commit('profile/setNode', editItem.value);
+    
+    if (dialogState.value === DialogState.ADD) {
+      store.commit('profile/addNodeList', editItem.value);
+      store.commit('profile/addNodeID', {
+        profileID: currentProfileID.value,
+        nodeID: editItem.value.id
+      });
+    } else {
+      store.commit('profile/setNode', editItem.value);
+    }
+    
+    ElMessage.success(dialogState.value === DialogState.ADD ? '添加成功' : '保存成功');
+    dialogState.value = DialogState.CLOSED;
+  } catch (error) {
+    if (error.message === 'Operation timed out') {
+      ElMessage.error('请求超时');
+    } else {
+      console.error('保存失败:', error);
+      ElMessage.error('保存失败');
+    }
+  } finally {
+    isLoading.value = false;
   }
-  isLoading.value = false;
-  dialogState.value = DialogState.CLOSED;
 };
 
 const handleDeleteNode = (item) => {
@@ -170,21 +180,14 @@ const handleDeleteNode = (item) => {
   overflow: hidden;
 }
 
-.delete-btn:hover {
-  background-color: transparent;
-}
-
-.delete-btn:active {
-  background-color: transparent;
-}
-
 .delete-icon {
-  color: var(--danger-light);
+  color: #FB513E;
 }
 
-.delete-btn:hover .delete-icon {
-  color: var(--danger);
+.delete-icon:hover {
+  color: red;
 }
+
 
 .ghost {
   opacity: 0.5;

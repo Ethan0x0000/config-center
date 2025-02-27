@@ -38,7 +38,9 @@
   <el-dialog class="code-dialog" v-model="dialogVisible" title="规则集详情" align-center>
     <div style="margin-bottom: 20px;">
       <div style="margin-bottom: 8px; font-weight: 500;">分组名</div>
-      <el-input v-model="currentRuleName" placeholder="请输入分组名" clearable @blur="updateRuleName" />
+      <el-select v-model="currentRuleName" clearable @change="updateRuleName" @clear="currentRuleName = '自动生成'">
+        <el-option v-for="group in ruleGroups" :key="group" :label="group" :value="group" />
+      </el-select>
       <div style="margin-top: 10px; color: #666;">
         规则链接: {{ currentRuleItem?.url }}
         <el-button style="margin-left: 10px;" type="primary" @click="loadRuleCode" :loading="loading">加载规则代码</el-button>
@@ -62,21 +64,36 @@ const dialogVisible = ref(false);
 const jsonData = ref('');
 const readOnly = true;
 const loading = ref(null); // 用于控制加载动画
-const currentRuleName = ref(''); // 当前查看的规则名称
+const currentRuleName = ref('自动生成'); // 当前查看的规则名称
 const currentRuleItem = ref(null); // 当前查看的规则项，包含url等完整信息
 const showCode = ref(false); // 控制是否显示代码框
+
 
 const props = defineProps({
   module: {
     type: String,
     default: "proxyRules",
     required: true
+  },
+  rule: {
+    type: String,
+    default: "ruleGroups"
   }
 });
 
 const currentProfileID = computed({
   get: () => store.state.profile.currentProfileID,
   set: (id) => store.commit('profile/setCurrentProfileID', id)
+});
+// 从store获取规则组列表
+const ruleGroups = computed(() => {
+  // 检查profilesMap是否存在以及是否有当前配置文件ID对应的数据
+  const profileData = store.state.profile.profilesMap[currentProfileID.value];
+  if (!profileData || !profileData[props.rule]) {
+    return ['自动生成'];
+  }
+  const groups = profileData[props.rule].map((group) => group?.name || '').filter(Boolean);
+  return ['自动生成', ...groups];
 });
 const items = computed({
   get: () => store.state.profile.profilesMap[currentProfileID.value][props.module],
@@ -123,7 +140,8 @@ const handleBlur = (item) => {
 const handleView = async (item) => {
   if (item.url) {
     currentRuleItem.value = item;
-    currentRuleName.value = item.groupName;
+    // 如果item没有groupName或groupName为空，则使用'自动生成'作为默认值
+    currentRuleName.value = item.groupName || '自动生成';
     dialogVisible.value = true;
     // 重置状态
     showCode.value = false;
@@ -163,6 +181,7 @@ const loadRuleCode = async () => {
     loading.value = false;
   }
 };
+
 </script>
 
 <style scoped>

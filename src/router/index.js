@@ -4,6 +4,7 @@ import BoardPage from '@/views/BoardPage.vue'
 import SettingPage from '@/views/SettingPage.vue'
 import NodePage from '@/views/NodePage.vue'
 import RulePage from '@/views/RulePage.vue'
+import GroupPage from '@/views/GroupPage.vue'
 
 // import TestPage from '@/views/TestPage.vue'
 
@@ -20,18 +21,28 @@ const routes = [
   {
     path: '/setting',
     name: 'setting',
-    component: SettingPage,
+    children: [
+      {
+        path: 'manage',
+        name: 'manage',
+        component: SettingPage
+      }
+    ]
   },
   {
     path: '/node',
-    name: 'about',
+    name: 'node',
     component: NodePage,
   },
   {
-
     path: '/rule',
     name: 'rule',
     component: RulePage,
+  },
+  {
+    path: '/group',
+    name: 'group',
+    component: GroupPage,
   },
   // {
   //   path: '/test',
