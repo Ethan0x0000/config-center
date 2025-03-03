@@ -509,8 +509,7 @@ const handleSaveName = (item) => {
 
 <style scoped>
 .global-setting {
-  width: auto;
-  height: auto;
+  width: 100%-20px;
   margin: 20px;
   background-color: var(--bg-color);
   color: var(--text-color);

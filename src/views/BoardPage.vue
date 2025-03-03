@@ -341,6 +341,15 @@ const clearCache = async () => {
   overflow-y: auto;
 }
 
+.el-input__inner {
+  color: var(--el-text-color-primary);
+}
+
+.status-descriptions :deep(.el-descriptions__label),
+.status-descriptions :deep(.el-descriptions__content) {
+  color: var(--el-text-color-regular);
+}
+
 .mb-4 {
   margin-bottom: 16px;
 }

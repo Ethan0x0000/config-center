@@ -21,7 +21,8 @@
             <Icon icon="iconamoon:edit-duotone" width="18" height="18" />
           </el-button>
           <el-text :type="isNodeSelected(item.id) ? 'success' : ''" @click="toggleUse(item.id)"
-            style="cursor: pointer;">{{ item.name }}</el-text>
+            style="cursor: pointer; padding: 4px 8px; border-radius: 4px; background-color: var(--el-color-success-light-9);"
+            :style="{ backgroundColor: isNodeSelected(item.id) ? 'var(--el-color-success-light-9)' : 'transparent' }">{{ item.name }}</el-text>
           <el-button class="delete-btn" @click="handleDeleteNode(item)" style="width: 32px;" color="transparent" text
             circle>
             <Icon icon="typcn:delete" width="24" height="24" class="delete-icon" />
