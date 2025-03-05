@@ -15,7 +15,10 @@
         <div class="current-profile"
           style="display: flex;justify-content: center;align-items: center;width: 49%;margin:0px 0px 5px 0px;">
           <el-text style=" width:80px;">当前配置:</el-text>
-          <el-select-v2 v-model="currentProfileID" :options="profileList" placeholder="请选择配置" />
+          <el-select v-model="currentProfileID" placeholder="请选择配置">
+            <el-option v-for="profile in profileList" :key="profile.value" :label="profile.label"
+              :value="profile.value" />
+          </el-select>
         </div>
         <el-button type="primary" @click="handleBackupProfiles" :loading="backupState"
           style="display: flex;justify-content: center;align-items: center;width: 49%;height: 32px; margin:0px 0px 5px 0px;">备份配置至Gist</el-button>
@@ -188,7 +191,8 @@
   </div>
 
   <el-dialog v-model="showCodeDialog" title="配置代码" width="60%" align-center>
-    <CodeDisplay :key="showCodeDialog" :content="code" :language="'json'" @change="handleCodeChange" />
+    <CodeDisplay :key="showCodeDialog" :content="code" :language="'json'"
+      :editorTheme="store.state.theme.currentTheme == 'dark' ? 'vs-dark' : 'vs'" @change="handleCodeChange" />
     <template #footer>
       <div class="code-dialog-footer">
         <el-button v-if="showCodeCommit" type="primary" @click="handleCodeCommit">
@@ -627,5 +631,32 @@ const handleSaveName = (item) => {
 .ghost {
   opacity: 0.5;
   background: var(--primary-light);
+}
+
+/* 新增表单元素暗色模式适配 */
+:deep(.el-input) {
+  --el-input-bg-color: var(--bg-color) !important;
+  --el-input-text-color: var(--text-color) !important;
+  --el-input-border-color: var(--border-color) !important;
+}
+
+:deep(.el-input__wrapper) {
+  --el-input-bg-color: var(--bg-color) !important;
+  --el-input-text-color: var(--text-color) !important;
+  --el-input-border-color: var(--border-color) !important;
+}
+
+:deep(.el-select) {
+  --el-select-bg-color: var(--bg-color) !important;
+  --el-select-text-color: var(--text-color) !important;
+  --el-select-border-color: var(--border-color) !important;
+}
+
+:deep(.el-select__wrapper) {
+  background-color: var(--bg-color) !important;
+}
+
+:deep(.el-tooltip__trigger) {
+  background-color: var(--bg-color) !important;
 }
 </style>

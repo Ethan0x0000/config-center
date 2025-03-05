@@ -5,7 +5,7 @@
         <div class="list-item" v-for="item in items" :key="item.id">
           <!-- 这里的handle是用来拖动的 -->
           <div class="drag-handle">
-            <Icon icon="mdi:drag-vertical-variant" height="28" width="auto" />
+            <Icon icon="mdi:drag-vertical-variant" height="24" width="24" />
           </div>
           <!-- 这里的type是用来选择规则类型的 -->
           <el-select-v2 v-model="item.type" :options="options" placeholder="选择类型" style="width:200px"
@@ -39,7 +39,8 @@
       <el-checkbox v-model="editItem.isPriority" label="优先匹配" size="large" @change="showSaveButton = true" />
       <el-checkbox v-model="editItem.isGroup" label="建立分组" size="large" @change="showSaveButton = true" />
     </div>
-    <CodeDisplay :content="editItem.content" :key="dialogVisible" @change="handleCodeChange" />
+    <CodeDisplay :content="editItem.content" :key="dialogVisible" @change="handleCodeChange"
+      :editorTheme="store.state.theme.currentTheme == 'dark' ? 'vs-dark' : 'vs'" />
     <template #footer>
       <el-button v-if="showSaveButton" type="primary" @click="handleSave">保存</el-button>
     </template>
@@ -130,10 +131,11 @@ const handleSave = () => {
 .list-item {
   display: flex;
   align-items: center;
-  height: 30px;
+  height: 36px;
   margin: 4px 0;
-  padding: 4px 4px;
-  background-color: #d8eaff;
+  padding: 5px 6px;
+  background-color: var(--bg-color);
+  border: 1px solid var(--border-color);
   border-radius: 6px;
 }
 
@@ -141,7 +143,22 @@ const handleSave = () => {
   cursor: move;
   display: flex;
   align-items: center;
+  justify-content: center;
   overflow: hidden;
+  margin-right: 8px;
+  min-width: 24px;
+  height: 24px;
+}
+
+.drag-handle :deep(svg) {
+  color: var(--text-color);
+  opacity: 0.6;
+  transition: all 0.3s;
+}
+
+.list-item:hover .drag-handle :deep(svg) {
+  opacity: 0.9;
+  transform: scale(1.05);
 }
 
 .edit-icon {
@@ -187,5 +204,32 @@ const handleSave = () => {
 .ghost {
   opacity: 0.5;
   background: #c8ebfb;
+}
+
+/* 新增表单元素暗色模式适配 */
+:deep(.el-input) {
+  --el-input-bg-color: var(--bg-color) !important;
+  --el-input-text-color: var(--text-color) !important;
+  --el-input-border-color: var(--border-color) !important;
+}
+
+:deep(.el-input__wrapper) {
+  --el-input-bg-color: var(--bg-color) !important;
+  --el-input-text-color: var(--text-color) !important;
+  --el-input-border-color: var(--border-color) !important;
+}
+
+:deep(.el-select) {
+  --el-select-bg-color: var(--bg-color) !important;
+  --el-select-text-color: var(--text-color) !important;
+  --el-select-border-color: var(--border-color) !important;
+}
+
+:deep(.el-select__wrapper) {
+  background-color: var(--bg-color) !important;
+}
+
+:deep(.el-tooltip__trigger) {
+  background-color: var(--bg-color) !important;
 }
 </style>

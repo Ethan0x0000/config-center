@@ -84,7 +84,7 @@
     </div>
     <template #footer>
       <div class="dialog-footer">
-        <el-button :type="highlightSaveButton" @click="handleSaveEdit">
+        <el-button @click="handleSaveEdit" type="primary">
           保存
         </el-button>
       </div>
@@ -236,10 +236,10 @@ const handleSaveEdit = () => {
         index,
         content: node.content
       }));
-      
+
       // 找出需要删除的节点
       const nodesToDelete = nodes.filter(node => {
-        const matchingSubNode = currentSubNodes.find(subNode => 
+        const matchingSubNode = currentSubNodes.find(subNode =>
           JSON.stringify(subNode.content) === JSON.stringify(node.content)
         );
         return matchingSubNode && !editSub.value.usedNodes.includes(matchingSubNode.index);
@@ -391,5 +391,23 @@ const getSubNodes = async (sub) => {
 .ghost {
   opacity: 0.5;
   background: #c8ebfb;
+}
+
+/* 新增表单元素暗色模式适配 */
+:deep(.el-input) {
+  --el-input-bg-color: var(--bg-color) !important;
+  --el-input-text-color: var(--text-color) !important;
+  --el-input-border-color: var(--border-color) !important;
+}
+
+:deep(.el-input__wrapper) {
+  --el-input-bg-color: var(--bg-color) !important;
+  --el-input-text-color: var(--text-color) !important;
+  --el-input-border-color: var(--border-color) !important;
+}
+
+:deep(.el-card__body) {
+  background-color: var(--bg-color);
+  border-color: var(--border-color);
 }
 </style>

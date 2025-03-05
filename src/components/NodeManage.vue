@@ -16,13 +16,13 @@
       <el-card v-for="item in nodes" :key="item.id" class="card-item" shadow="never" body-style="padding: 5px;"
         style="background-color: var(--bg-color);">
         <div style="display: flex; justify-content: space-between; align-items: center;">
-          <Icon class="drag-handle" icon="ic:baseline-drag-indicator" width="21" height="21" />
+          <Icon class="drag-handle" icon="mdi:drag-vertical-variant" width="24" height="24" />
           <el-button @click="handleEditNode(item)" text style="width: 32px;" circle>
             <Icon icon="iconamoon:edit-duotone" width="18" height="18" />
           </el-button>
           <el-text :type="isNodeSelected(item.id) ? 'success' : ''" @click="toggleUse(item.id)"
-            style="cursor: pointer; padding: 4px 8px; border-radius: 4px; background-color: var(--el-color-success-light-9);"
-            :style="{ backgroundColor: isNodeSelected(item.id) ? 'var(--el-color-success-light-9)' : 'transparent' }">{{ item.name }}</el-text>
+            style="cursor: pointer; padding: 4px 8px; border-radius: 4px;"
+            :style="{ backgroundColor: isNodeSelected(item.id) ? 'transparent' : 'transparent' }">{{ item.name }}</el-text>
           <el-button class="delete-btn" @click="handleDeleteNode(item)" style="width: 32px;" color="transparent" text
             circle>
             <Icon icon="typcn:delete" width="24" height="24" class="delete-icon" />
@@ -43,7 +43,6 @@
       <el-input class="node-link" v-model="editItem.link"></el-input>
     </div>
     <template #footer>
-      <el-button @click="handleDialogClose">取消</el-button>
       <el-button type="primary" @click="handleSave" :loading="isLoading">保存</el-button>
     </template>
   </el-dialog>
@@ -127,7 +126,7 @@ const handleSave = async () => {
       const response = await timeout(10000, axios.get(url));
       editItem.value.content = response.data.outbounds[0];
     }
-    
+
     if (dialogState.value === DialogState.ADD) {
       store.commit('profile/addNodeList', editItem.value);
       store.commit('profile/addNodeID', {
@@ -137,7 +136,7 @@ const handleSave = async () => {
     } else {
       store.commit('profile/setNode', editItem.value);
     }
-    
+
     ElMessage.success(dialogState.value === DialogState.ADD ? '添加成功' : '保存成功');
     dialogState.value = DialogState.CLOSED;
   } catch (error) {
@@ -179,6 +178,8 @@ const handleDeleteNode = (item) => {
   display: flex;
   align-items: center;
   overflow: hidden;
+  min-width: 24px;
+  margin-right: 4px;
 }
 
 .delete-icon {
@@ -220,8 +221,16 @@ const handleDeleteNode = (item) => {
   color: var(--text-color);
 }
 
-.el-dialog__footer {
-  background-color: var(--bg-color);
-  color: var(--text-color);
+/* 新增表单元素暗色模式适配 */
+:deep(.el-input) {
+  --el-input-bg-color: var(--bg-color) !important;
+  --el-input-text-color: var(--text-color) !important;
+  --el-input-border-color: var(--border-color) !important;
+}
+
+:deep(.el-input__wrapper) {
+  --el-input-bg-color: var(--bg-color) !important;
+  --el-input-text-color: var(--text-color) !important;
+  --el-input-border-color: var(--border-color) !important;
 }
 </style>

@@ -11,7 +11,7 @@
           <VueDraggable v-model="outGroups" handle=".drag-handle" :animation="150" ghostClass="ghost">
             <div class="list-item" v-for="item in outGroups" :key="item.id">
               <div class="drag-handle">
-                <Icon icon="mdi:drag-vertical-variant" height="28" width="auto" />
+                <Icon icon="mdi:drag-vertical-variant" height="24" width="24" />
               </div>
               <el-input v-model="item.name" placeholder="请输入分组名称" clearable @blur="updateOutGroup(item)"
                 @keyup.enter="updateOutGroup(item)"></el-input>
@@ -86,7 +86,8 @@
       </div>
       <div class="matched-nodes">
         <div v-for="node in currentItem.nodes" :key="node" style="display: flex; align-items: center;">
-          <el-tag class="node-tag" type="info" effect="plain" closable @close="currentItem.nodes = currentItem.nodes.filter(n => n !== node); showSaveButton = true">{{ node }}</el-tag>
+          <el-tag class="node-tag" type="info" effect="plain" closable
+            @close="currentItem.nodes = currentItem.nodes.filter(n => n !== node); showSaveButton = true">{{ node }}</el-tag>
         </div>
       </div>
     </div>
@@ -343,16 +344,34 @@ const handleRuleGroupDelete = (item) => {
 .list-item {
   display: flex;
   align-items: center;
-  padding: 5px;
-  margin-bottom: 8px;
-  border-radius: 4px;
+  height: 36px;
+  margin: 4px 0;
+  padding: 5px 6px;
   background-color: var(--bg-color);
   border: 1px solid var(--border-color);
+  border-radius: 6px;
 }
 
 .drag-handle {
   cursor: move;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
   margin-right: 8px;
+  min-width: 24px;
+  height: 24px;
+}
+
+.drag-handle :deep(svg) {
+  color: var(--text-color);
+  opacity: 0.6;
+  transition: all 0.3s;
+}
+
+.list-item:hover .drag-handle :deep(svg) {
+  opacity: 0.9;
+  transform: scale(1.05);
 }
 
 .delete-icon {
@@ -393,5 +412,18 @@ const handleRuleGroupDelete = (item) => {
 .add-btn {
   width: 100%;
   margin-top: 10px;
+}
+
+/* 新增表单元素暗色模式适配 */
+:deep(.el-input) {
+  --el-input-bg-color: var(--bg-color) !important;
+  --el-input-text-color: var(--text-color) !important;
+  --el-input-border-color: var(--border-color) !important;
+}
+
+:deep(.el-input__wrapper) {
+  --el-input-bg-color: var(--bg-color) !important;
+  --el-input-text-color: var(--text-color) !important;
+  --el-input-border-color: var(--border-color) !important;
 }
 </style>

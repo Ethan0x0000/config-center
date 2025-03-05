@@ -344,10 +344,36 @@ const clearCache = async () => {
 .el-input__inner {
   color: var(--el-text-color-primary);
 }
-
 .status-descriptions :deep(.el-descriptions__label),
 .status-descriptions :deep(.el-descriptions__content) {
   color: var(--el-text-color-regular);
+  /* 新增背景色适配 */
+  background-color: var(--bg-color); 
+}
+
+/* 新增版本号区域专属样式 */
+:deep(.el-descriptions__content) .core-version-info {
+  background-color: var(--bg-color-secondary);
+  padding: 8px;
+  border-radius: 4px;
+  margin: -4px 0;
+}
+
+/* 新增输入框暗色主题适配 */
+:deep(.el-input) {
+  --el-input-bg-color: var(--bg-color);
+  --el-input-text-color: var(--text-color);
+  --el-input-border-color: var(--border-color);
+}
+
+:deep(.el-input__inner) {
+  background-color: var(--el-input-bg-color);
+  color: var(--el-input-text-color);
+  border-color: var(--el-input-border-color);
+}
+
+:deep(.el-input__prefix) {
+  color: var(--el-input-text-color);
 }
 
 .mb-4 {
@@ -395,19 +421,40 @@ const clearCache = async () => {
 .status-descriptions {
   margin-top: 16px;
 }
-
 .core-version-info {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start; /* 修改为左侧对齐 */
   gap: 12px;
 }
 
+/* 新增版本号文本容器样式 */
+.core-version-info > span {
+  flex-grow: 1; /* 允许文本占据剩余空间 */
+  text-align: left; /* 确保文本左对齐 */
+  min-width: 80px; /* 保持最小宽度统一 */
+}
 .upgrade-btn {
   display: flex;
   align-items: center;
   gap: 4px;
   padding: 6px 12px;
+  /* 新增按钮颜色适配 */
+  color: var(--text-color);
+  border-color: var(--border-color);
+  background-color: transparent;
+}
+
+.upgrade-btn:hover {
+  color: var(--el-color-primary);
+  border-color: var(--el-color-primary);
+  background-color: var(--bg-color-secondary);
+}
+
+.upgrade-btn:active {
+  border-color: var(--el-color-primary);
+  background-color: var(--bg-color-secondary);
+  opacity: 0.8;
 }
 
 .control-btn {
