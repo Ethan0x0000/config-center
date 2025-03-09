@@ -1,7 +1,7 @@
 export default {
   namespaced: true,
   state: () => ({
-    currentTheme: 'light',
+    currentTheme: '',
     themes: {
       light: {
         '--bg-color': '#ffffff',
@@ -36,12 +36,10 @@ export default {
   mutations: {
     setTheme(state, theme) {
       state.currentTheme = theme
+      localStorage.setItem('theme', theme)
       Object.entries(state.themes[theme]).forEach(([key, value]) => {
         document.documentElement.style.setProperty(key, value)
       })
     }
-  },
-  getters: {
-    currentTheme: state => state.currentTheme
   }
 }

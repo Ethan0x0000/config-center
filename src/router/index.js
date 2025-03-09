@@ -21,13 +21,7 @@ const routes = [
   {
     path: '/setting',
     name: 'setting',
-    children: [
-      {
-        path: 'manage',
-        name: 'manage',
-        component: SettingPage
-      }
-    ]
+    component: SettingPage,
   },
   {
     path: '/node',

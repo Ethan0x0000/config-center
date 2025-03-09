@@ -9,7 +9,7 @@
           <span>面板</span>
         </template>
       </el-menu-item>
-      <el-menu-item index="/setting/manage">
+      <el-menu-item index="/setting">
         <template #title>
           <el-icon>
             <Icon icon="uil:setting" style="position: relative;top: -1px;" />
