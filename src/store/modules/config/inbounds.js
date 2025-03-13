@@ -5,19 +5,15 @@ export const Inbounds = {
       type: 'mixed',
       tag: 'mixed-in',
       listen: '::',
-      listen_port: 8888,
-      sniff: true
+      listen_port: 8888
     },
     {
       type: 'tun',
       interface_name: 'sb-tun',
       address: '172.19.0.1/30',
       stack: 'system',
-      sniff: true,
       auto_route: true,
-      strict_route: true,
-      sniff_override_destination: true,
-      gso: false
+      strict_route: true
     }
   ],
   mobile: [
@@ -25,17 +21,14 @@ export const Inbounds = {
       type: 'mixed',
       tag: 'mixed-in',
       listen: '::',
-      listen_port: 8888,
-      sniff: true
+      listen_port: 8888
     },
     {
       type: 'tun',
       interface_name: 'tun-in',
       address: '172.19.0.1/30',
       stack: 'system',
-      sniff: true,
       auto_route: true,
-      sniff_override_destination: true,
       gso: false,
       platform: {
         http_proxy: {
@@ -51,16 +44,13 @@ export const Inbounds = {
       type: 'mixed',
       tag: 'mixed-in',
       listen: '::',
-      listen_port: 8888,
-      sniff: true
+      listen_port: 8888
     },
     {
       type: 'tproxy',
       tag: 'tproxy-in',
       listen: '::',
-      listen_port: 9888,
-      sniff: true,
-      sniff_override_destination: true
+      listen_port: 9888
     }
   ]
 }

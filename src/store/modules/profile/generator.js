@@ -24,24 +24,12 @@ function modifyGlobal(config, profile, global) {
   if (profile.isUseGlobal) {
     // 使用全局设置覆盖日志禁用状态
     config.log.disabled = !global.isLog;
-    // 遍历所有入站配置，更新目标嗅探覆盖设置
-    for (let i = 0; i < config.inbounds.length; i++) {
-      if (Object.prototype.hasOwnProperty.call(config.inbounds[i], 'sniff_override_destination')) {
-        config.inbounds[i].sniff_override_destination = global.isOverDst;
-      }
-    }
   } else {
     // 使用配置文件自身设置覆盖日志禁用状态
     if (!config.log) {
       config.log = {};
     }
     config.log.disabled = !profile.isLog;
-    // 遍历所有入站配置，更新目标嗅探覆盖设置
-    for (let i = 0; i < config.inbounds.length; i++) {
-      if (Object.prototype.hasOwnProperty.call(config.inbounds[i], 'sniff_override_destination')) {
-        config.inbounds[i].sniff_override_destination = profile.isOverDst;
-      }
-    }
   }
 
   /* 针对Linux平台的特殊配置 */
@@ -104,12 +92,11 @@ async function generateOutbounds(nodeList, subs, nodeIDs, rootState) {
  * @param {Array} outbounds - 出站节点列表
  * @param {Array} subs - 订阅组列表
  * @param {Array} rules - 规则列表
- * @param {Array} blocks - 阻断规则列表
  * @param {Array} udRules - 用户定义规则列表
  * @param {boolean} isTogShut - 是否中断现有连接
  * @returns {Array} - 生成的出站组配置列表
  */
-function generateOutboundGroups(outbounds, subs, rules, blocks, udRules, outGroups, isTogShut) {
+function generateOutboundGroups(outbounds, subs, rules, udRules, outGroups, isTogShut) {
   // 过滤并提取订阅组名称
   let subGroupNames = subs.filter(sub => sub.isGroup && sub.usedNodes.length > 0).map(item => item.name);
 
@@ -178,25 +165,13 @@ function generateOutboundGroups(outbounds, subs, rules, blocks, udRules, outGrou
     index === self.findIndex(obj => obj.tag === item.tag)
   );
 
-  // 构建阻断组配置
-  let blockGroups = blocks.map(rule => {
-    return {
-      tag: rule.groupName ? rule.groupName : processString(rule.name),
-      outbounds: ['🚫 Block', '🇨🇳 Direct'],
-      interrupt_exist_connections: isTogShut,
-      type: 'selector'
-    }
-  }).filter((item, index, self) =>
-    index === self.findIndex(obj => obj.tag === item.tag)
-  );
-
   // 构建高优先级用户定义规则组配置
   let priorityUdRuleGroups = udRules.filter(rule => {
     return rule.isGroup && rule.isPriority && rule.type === 'proxy';
   }).map(rule => {
     return {
       tag: rule.name,
-      outbounds: ['📦 Proxy'].concat(outGroups.map(group => group.name), outboundNames, ['🇨🇳 Direct', '🚫 Block']),
+      outbounds: ['📦 Proxy'].concat(outGroups.map(group => group.name), outboundNames, ['🇨🇳 Direct']),
       interrupt_exist_connections: isTogShut,
       type: 'selector'
     }
@@ -208,7 +183,7 @@ function generateOutboundGroups(outbounds, subs, rules, blocks, udRules, outGrou
   }).map(rule => {
     return {
       tag: rule.name,
-      outbounds: ['📦 Proxy'].concat(outGroups.map(group => group.name), outboundNames, ['🇨🇳 Direct', '🚫 Block']),
+      outbounds: ['📦 Proxy'].concat(outGroups.map(group => group.name), outboundNames, ['🇨🇳 Direct']),
       interrupt_exist_connections: isTogShut,
       type: 'selector'
     }
@@ -243,9 +218,9 @@ function generateOutboundGroups(outbounds, subs, rules, blocks, udRules, outGrou
 
   // 添加高优先级用户定义规则组到组列表
   if (priorityUdRuleGroups !== null) {
-    groups = groups.concat(proxyGroup, autoGroup, priorityUdRuleGroups, ruleGroups, blockGroups);
+    groups = groups.concat(proxyGroup, autoGroup, priorityUdRuleGroups, ruleGroups);
   } else {
-    groups = groups.concat(proxyGroup, autoGroup, ruleGroups, blockGroups);
+    groups = groups.concat(proxyGroup, autoGroup, ruleGroups);
   }
 
   // 添加非高优先级用户定义规则组到组列表
@@ -378,7 +353,7 @@ function modifyDNS(config, profile, isFakeIP) {
         case 'direct':
           filteredObject.server = 'local-dns';
           break;
-        case '🚫 Block':
+        case 'block':
           filteredObject.server = 'block-dns';
           break;
         case 'proxy':
@@ -409,7 +384,7 @@ function modifyDNS(config, profile, isFakeIP) {
         case 'direct':
           filteredObject.server = 'local-dns';
           break;
-        case '🚫 Block':
+        case 'block':
           filteredObject.server = 'block-dns';
           break;
         case 'proxy':
@@ -470,7 +445,7 @@ function modifyDNS(config, profile, isFakeIP) {
  * @param {Object} profile - 用户配置对象，包含目标设备类型和代理设置
  * @param {Object} global - 全局配置对象，包含全局代理设置
  */
-function modifyInbounds(config, profile, global) {
+function modifyInbounds(config, profile) {
   // 根据目标设备类型选择相应的入站配置
   switch (profile.target) {
     case 'pc':
@@ -485,13 +460,6 @@ function modifyInbounds(config, profile, global) {
     default:
       break;
   }
-  // 遍历入站配置，根据用户设置调整嗅探重定向目的地
-  for (let i = 0; i < config.inbounds.length; i++) {
-    // 如果入站配置包含嗅探重定向目的地属性，则根据用户设置进行更新
-    if (Object.prototype.hasOwnProperty.call(config.inbounds[i], 'sniff_override_destination')) {
-      config.inbounds[i].sniff_override_destination = profile.isUseGlobal ? global.isOverDst : profile.isOverDst;
-    }
-  }
 }
 
 /**
@@ -502,7 +470,12 @@ function modifyInbounds(config, profile, global) {
  * @param {Object} config - 原始的配置文件对象，将被修改以包含新的路由规则
  * @param {Object} profile - 用户配置文件对象，包含代理、直连和阻止规则
  */
-function modifyRoutes(config, profile) {
+function modifyRoutes(config, profile, global) {
+  // 根据要求配置嗅探
+  if ((profile.isUseGlobal && global.isSniff) || (!profile.isUseGlobal && profile.isSniff)) {
+    config.route.rules.splice(0, 0, { action: 'sniff' });
+  }
+
   // 将用户配置中的代理规则转换为路由规则集
   let proxyRuleSets = profile.proxyRules.map(item => {
     return {
@@ -551,7 +524,7 @@ function modifyRoutes(config, profile) {
 
   // 将用户配置中的阻止规则转换为路由规则
   let blockRules = profile.blockRules.map(item => {
-    return { rule_set: item.name, outbound: item.groupName !== '自动生成' ? item.groupName : processString(item.name) }
+    return { rule_set: item.name, action: 'reject' }
   });
 
   // 初始化优先级和非优先级的用户定义规则数组
@@ -562,7 +535,7 @@ function modifyRoutes(config, profile) {
   if (Array.isArray(profile.udRules) && profile.udRules.length > 0) {
     // 过滤并处理优先级规则，排除阻断规则和内容为空的规则
     priorityUdRules = profile.udRules.filter(item => {
-      return item.isPriority && item.type !== '🚫 Block' && item.content;
+      return item.isPriority && item.isUse && item.content;
     }).map(item => {
       let ruleObj;
       try {
@@ -583,6 +556,9 @@ function modifyRoutes(config, profile) {
             ruleObj.outbound = '📦 Proxy';
           }
           break;
+        case 'block':
+          ruleObj.action = 'reject';
+          break;
         default:
           break;
       }
@@ -591,7 +567,7 @@ function modifyRoutes(config, profile) {
 
     // 过滤并处理非优先级规则，排除内容为空的规则
     nonPriorityUdRules = profile.udRules.filter(item => {
-      return !item.isPriority && item.content;
+      return !item.isPriority && item.isUse && item.content;
     }).map(item => {
       let ruleObj;
       try {
@@ -605,8 +581,8 @@ function modifyRoutes(config, profile) {
         case 'direct':
           ruleObj.outbound = 'direct';
           break;
-        case '🚫 Block':
-          ruleObj.outbound = '🚫 Block';
+        case 'block':
+          ruleObj.action = 'reject';
           break;
         case 'proxy':
           if (item.isGroup) {
@@ -662,15 +638,15 @@ export async function generateFullConfig(subs, nodeList, profile, global, rootSt
     modifyDNS(config, profile, profile.isUseGlobal ? global.isFakeIP : profile.isFakeIP);
 
     // 入站配置
-    modifyInbounds(config, profile, global);
+    modifyInbounds(config, profile);
 
     // 出站配置
     let outbounds = await generateOutbounds(nodeList, subs, profile.nodeIDs, rootState);
-    let outboundGroups = generateOutboundGroups(outbounds, subs, profile.proxyRules, profile.blockRules, profile.udRules, profile.outGroups, profile.isUseGlobal ? global.isTogShut : profile.isTogShut);
+    let outboundGroups = generateOutboundGroups(outbounds, subs, profile.proxyRules, profile.udRules, profile.outGroups, profile.isUseGlobal ? global.isTogShut : profile.isTogShut);
     config.outbounds = config.outbounds.concat(outbounds, outboundGroups);
 
     // 路由配置
-    modifyRoutes(config, profile);
+    modifyRoutes(config, profile, global);
     // 成功日志
     console.log('Config generation successful');
     return config;

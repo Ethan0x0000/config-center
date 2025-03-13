@@ -124,6 +124,7 @@ const handleSave = () => {
   }
   store.commit('profile/setProfileArrayItem', { id: editItem.value.id, arrayName: 'udRules', value: editItem.value });
   ElMessage.success('保存成功');
+  dialogVisible.value = false;
 }
 </script>
 

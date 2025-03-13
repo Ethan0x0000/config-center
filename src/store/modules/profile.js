@@ -12,7 +12,7 @@ const profile = {
     global: {
       isLog: true,
       isFakeIP: true,
-      isOverDst: true,
+      isSniff: true,
       isTogShut: false,
     },
     currentProfileID: '',

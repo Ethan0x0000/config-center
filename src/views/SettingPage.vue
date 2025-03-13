@@ -38,8 +38,8 @@
         </el-card>
         <el-card class="switch-card" shadow="hover">
           <div class="switch-warper">
-            <el-text>是否开启覆盖IP</el-text>
-            <el-switch v-model="store.state.profile.global.isOverDst" inline-prompt active-text="Y" inactive-text="N" />
+            <el-text>是否开启嗅探</el-text>
+            <el-switch v-model="store.state.profile.global.isSniff" inline-prompt active-text="Y" inactive-text="N" />
           </div>
         </el-card>
         <el-card class="switch-card" shadow="hover">
@@ -145,9 +145,9 @@
             </el-card>
             <el-card class="switch-card" shadow="hover">
               <div class="switch-warper">
-                <el-text>是否开启覆盖IP</el-text>
-                <el-switch v-model="item.isOverDst" inline-prompt active-text="Y" inactive-text="N"
-                  @change="store.commit('profile/setProfileProperty', { id: item.id, propertyName: 'isOverDst', value: item.isOverDst })" />
+                <el-text>是否开启嗅探</el-text>
+                <el-switch v-model="item.isSniff" inline-prompt active-text="Y" inactive-text="N"
+                  @change="store.commit('profile/setProfileProperty', { id: item.id, propertyName: 'isSniff', value: item.isSniff })" />
               </div>
             </el-card>
             <el-card class="switch-card" shadow="hover">

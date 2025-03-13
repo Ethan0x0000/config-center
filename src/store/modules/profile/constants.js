@@ -23,7 +23,7 @@ export const createNewItem = (arrayName) => {
         isUseGlobal: true,
         isLog: true,
         isFakeIP: true,
-        isOverDst: true,
+        isSniff: true,
         isTogShut: false,
         target: 'pc',
         dns: {
@@ -80,7 +80,17 @@ export const createNewItem = (arrayName) => {
             groupName: '自动生成'
           }
         ],
-        udRules: [],
+        udRules: [
+          {
+            id: uuidV4(),
+            name: '直连',
+            type: 'direct',
+            isUse: true,
+            isGroup: false,
+            isPriority: true,
+            content: '{\n  "domain_suffix": [\n      "edu.cn",\n      "gov.cn",\n      "mil.cn",\n      "ac.cn",\n      "com.cn",\n      "net.cn",\n      "org.cn"\n  ]\n}\n'
+          }
+        ],
         outGroups: [],
         ruleGroups: [],
         value: '',
